@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+
+<style>
+    /* Thêm z-index: 1 để bản đồ không bao giờ đè lên Navbar khi cuộn trang */
+    #gis-map { height: 650px; width: 100%; border-radius: 10px; border: 2px solid #0d6efd; cursor: crosshair; z-index: 1; }
+    .gis-controls { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 100%; }
+    .hero-section { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://petrolimex.com.vn/public/userfiles/images/2021/T6/18062021_KV2_CH42_01.jpg'); background-size: cover; color: white; padding: 100px 0; text-align: center; }
+    
+    .leaflet-control-locate {
+        background-color: white; width: 40px; height: 40px; border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3); cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 20px; color: #333; transition: 0.3s;
+    }
+    .leaflet-control-locate:hover { color: #0d6efd; background-color: #f8f9fa; }
+    .leaflet-routing-container { display: none !important; }
+    .suggestion-item:hover { background-color: #f0f8ff; cursor: pointer; }
+    /* --- CSS HIỆU ỨNG CHO TRẠM E10 --- */
+    /* --- CSS HIỆU ỨNG CHO TRẠM E10 (ĐÃ FIX LỖI BAY MẤT TỌA ĐỘ) --- */
+    .eco-marker {
+        animation: pulse-eco 1.5s infinite;
+    }
+    @keyframes pulse-eco {
+        0% { filter: hue-rotate(180deg) saturate(2) drop-shadow(0 0 0px #0dcaf0); }
+        50% { filter: hue-rotate(180deg) saturate(2) drop-shadow(0 0 15px #0dcaf0) brightness(1.3); }
+        100% { filter: hue-rotate(180deg) saturate(2) drop-shadow(0 0 0px #0dcaf0); }
+    }
+    .text-eco { color: #0dcaf0 !important; }
+</style>
+
+<section class="hero-section mb-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold">GSMS GROUP - VỮNG BƯỚC VƯƠN XA</h1>
+        <p class="lead">Hệ thống quản lý và phân phối xăng dầu hàng đầu Việt Nam</p>
+        <button onclick="timTramGanNhat()" class="btn btn-primary btn-lg mt-3 shadow"><i class="fas fa-map-marker-alt"></i> TÌM QUANH TÔI</button>
+    </div>
+</section>
+
+<section id="gis-section" class="container mb-5">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <h2 class="text-primary border-bottom pb-2"><i class="fas fa-globe-asia"></i> BẢN ĐỒ MẠNG LƯỚI TRẠM</h2>
+            <p class="text-muted small"><i class="fas fa-hand-pointer text-danger"></i> <b>Mẹo:</b> Bạn có thể gõ tìm kiếm, hoặc <b>nhấp chuột trực tiếp lên bản đồ</b> để chọn vị trí của mình.</p>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="gis-controls">
+                <h5 class="fw-bold mb-3"><i class="fas fa-filter"></i> Bộ Lọc Tìm Kiếm</h5>
+
+                <div class="mb-3 position-relative">
+                    <label class="form-label fw-bold"><i class="fas fa-search-location text-danger"></i> Tìm khu vực của bạn:</label>
+                    <input type="text" class="form-control border-primary shadow-sm" 
+                           placeholder="Nhập tên Phường, Quận... hoặc click map" 
+                           id="locationInput" 
+                           oninput="tuDongTimKiem()" autocomplete="off">
+                    
+                    <ul class="list-group position-absolute w-100 shadow" id="suggestionList" 
+                        style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto; top: 75px;">
+                    </ul>
+                </div>
+                
+                <hr>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Bán kính quét: <span id="radiusVal" class="text-danger fw-bold">5</span> km</label>
+                    <input type="range" class="form-range" min="1" max="20" step="1" id="radiusRange" value="5" 
+                           oninput="capNhatBanKinh(this.value)">
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold mb-2">Loại nhiên liệu:</label>
+                    <div class="form-check">
+                        <input class="form-check-input fuel-filter" type="checkbox" value="A95" id="checkA95" checked onchange="capNhatBanDo()">
+                        <label class="form-check-label text-success fw-bold" for="checkA95">Xăng RON 95-III</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input fuel-filter" type="checkbox" value="E5" id="checkE5" checked onchange="capNhatBanDo()">
+                        <label class="form-check-label text-success fw-bold" for="checkE5">Xăng E5 RON 92</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input fuel-filter" type="checkbox" value="E10" id="checkE10" checked onchange="capNhatBanDo()">
+                        <label class="form-check-label text-info fw-bold" for="checkE10">Xăng Sinh Học E10</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input fuel-filter" type="checkbox" value="DO" id="checkDO" checked onchange="capNhatBanDo()">
+                        <label class="form-check-label text-warning fw-bold" for="checkDO">Dầu DO 0.05S</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div id="gis-map" class="shadow position-relative" title="Nhấn vào đây để chọn vị trí của bạn"></div>
+        </div>
+    </div>
+</section>
+
+<section id="tin-tuc" class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center text-primary fw-bold mb-4">TIN TỨC HOẠT ĐỘNG</h2>
+        <div class="row">
+            {% for tin in tin_tuc %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <img src="{{ tin.anh_bia }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ tin.tieu_de }}</h5>
+                        <p class="card-text small text-muted">{{ tin.tom_tat|truncatechars:100 }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<script>
+    // 1. DỮ LIỆU TỪ BACKEND
+    var allStations = {{ tram_json|safe }};
+    
+    // 2. KHỞI TẠO BẢN ĐỒ VÀ CÁC LỚP LAYER
+    var map = L.map('gis-map').setView([10.762622, 106.660172], 12);
+    var markersLayer = L.layerGroup().addTo(map);
+    var routeLayer = null; 
+    var userMarker, radiusCircle;
+    var userLocation = null; 
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+
+    // 3. KHAI BÁO CÁC LOẠI ICON (Phải đặt ở đây trước khi vẽ bản đồ)
+    var gasIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', 
+        iconSize: [45, 45], iconAnchor: [22, 45], popupAnchor: [0, -45]
+    });
+
+    var ecoGasIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', 
+        iconSize: [55, 55], // Trạm E10 icon to hơn 1 chút
+        iconAnchor: [27, 55], 
+        popupAnchor: [0, -55],
+        className: 'eco-marker' // Áp dụng CSS phát sáng
+    });
+
+    // 4. NÚT ĐỊNH VỊ GPS
+    var LocateControl = L.Control.extend({
+        options: { position: 'bottomright' },
+        onAdd: function(map) {
+            var container = L.DomUtil.create('div', 'leaflet-control-locate leaflet-bar');
+            container.innerHTML = '<i class="fas fa-crosshairs"></i>';
+            container.onclick = function(e) { e.stopPropagation(); timTramGanNhat(); };
+            return container;
+        }
+    });
+    map.addControl(new LocateControl());
+
+    // ==========================================
+    // CÔNG THỨC TOÁN HỌC HAVERSINE
+    // ==========================================
+    function tinhKhoangCachHaversine(lat1, lon1, lat2, lon2) {
+        var R = 6371; // Bán kính Trái Đất (km)
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    // ==========================================
+    // CẬP NHẬT BẢN ĐỒ
+    // ==========================================
+    function capNhatBanDo() {
+        markersLayer.clearLayers(); 
+        var radiusKm = parseFloat(document.getElementById('radiusRange').value);
+        var selectedFuels = [];
+        document.querySelectorAll('.fuel-filter:checked').forEach(cb => selectedFuels.push(cb.value));
+
+        allStations.forEach(st => {
+            var hasFuel = st.fuels.some(f => selectedFuels.includes(f));
+            var isInRadius = true;
+            var distText = "";
+            
+            if (userLocation) {
+                var dist = tinhKhoangCachHaversine(userLocation[0], userLocation[1], st.lat, st.lng); 
+                if (dist > radiusKm) isInRadius = false; 
+                distText = `<span class="badge bg-secondary mb-2">Cách bạn: ${dist.toFixed(1)} km</span>`;
+            }
+
+            if (hasFuel && isInRadius) {
+                // PHÂN LOẠI TRẠM XĂNG
+                var isEcoStation = st.fuels.includes('E10');
+                var selectedIcon = isEcoStation ? ecoGasIcon : gasIcon;
+                
+                var marker = L.marker([st.lat, st.lng], {icon: selectedIcon});
+                
+                var fuelBadges = st.fuels.map(f => {
+                    var color = f === 'A95' ? 'success' : (f === 'E5' ? 'success' : (f === 'E10' ? 'info text-dark' : 'warning text-dark'));
+                    return `<span class="badge bg-${color} me-1">${f}</span>`;
+                }).join("");
+
+                var ecoBadge = isEcoStation ? `<div class="badge bg-info text-dark w-100 mb-2 shadow-sm"><i class="fas fa-leaf"></i> TRẠM XĂNG SINH THÁI</div>` : '';
+                var titleColor = isEcoStation ? 'text-eco' : 'text-primary';
+
+                var popupContent = `
+                    <div class="text-center" style="min-width: 200px;">
+                        <h6 class="fw-bold ${titleColor} text-uppercase mb-1">${st.ten}</h6>
+                        ${ecoBadge}
+                        <p class="small mb-1 text-muted"><i class="fas fa-map-marker-alt"></i> ${st.dia_chi}</p>
+                        ${distText}
+                        <div class="mb-2">Sẵn có: ${fuelBadges}</div>
+                        <hr class="my-2">
+                        <label class="small fw-bold text-dark mb-1">Dẫn đường:</label>
+                        <div class="d-grid gap-2">
+                            <a href="https://www.google.com/maps/dir/?api=1&destination=${st.lat},${st.lng}" target="_blank" class="btn btn-sm btn-outline-danger fw-bold"><i class="fab fa-google"></i> Google Maps</a>
+                            <div class="btn-group" role="group">
+                                <button onclick="timDuongTrongMap(${st.lat}, ${st.lng}, 'car')" class="btn btn-sm btn-primary"><i class="fas fa-car"></i> Ô tô</button>
+                                <button onclick="timDuongTrongMap(${st.lat}, ${st.lng}, 'bike')" class="btn btn-sm btn-info text-white"><i class="fas fa-motorcycle"></i> Xe máy</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                marker.bindPopup(popupContent);
+                markersLayer.addLayer(marker);
+            }
+        });
+    }
+
+    // ==========================================
+    // CÁC HÀM TIỆN ÍCH DẪN ĐƯỜNG VÀ TÌM KIẾM
+    // ==========================================
+    function timDuongTrongMap(destLat, destLng, mode) {
+        if (!userLocation) { alert("Vui lòng chọn khu vực hoặc bật GPS trước!"); return; }
+        if (routeLayer) map.removeControl(routeLayer);
+        map.closePopup();
+
+        routeLayer = L.Routing.control({
+            waypoints: [L.latLng(userLocation[0], userLocation[1]), L.latLng(destLat, destLng)],
+            lineOptions: { styles: [{color: mode === 'car' ? 'blue' : 'purple', opacity: 0.7, weight: 6}] },
+            createMarker: function() { return null; },
+            addWaypoints: false, draggableWaypoints: false, fitSelectedRoutes: true, show: false
+        }).addTo(map);
+    }
+
+    function updateUserLocation(lat, lng, popupText) {
+        userLocation = [lat, lng]; 
+        if (userMarker) map.removeLayer(userMarker);
+        userMarker = L.marker([lat, lng], {
+            icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/9131/9131546.png', iconSize:[45,45]})
+        }).addTo(map).bindPopup(popupText).openPopup();
+        map.setView([lat, lng], 13);
+        veVongTron();
+    }
+
+    function veVongTron() {
+        var km = document.getElementById('radiusRange').value;
+        document.getElementById('radiusVal').innerText = km;
+        if (!userLocation) return; 
+        if (radiusCircle) map.removeLayer(radiusCircle);
+        radiusCircle = L.circle(userLocation, { color: '#0d6efd', fillColor: '#0d6efd', fillOpacity: 0.05, radius: km * 1000 }).addTo(map);
+        capNhatBanDo();
+    }
+    
+    function capNhatBanKinh(val) { veVongTron(); }
+
+    function timTramGanNhat() {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                document.getElementById('locationInput').value = "Vị trí GPS của tôi";
+                if (routeLayer) { map.removeControl(routeLayer); routeLayer = null; }
+                updateUserLocation(pos.coords.latitude, pos.coords.longitude, "<b><i class='fas fa-street-view'></i> Bạn đang ở đây</b>");
+            },
+            (err) => console.warn(err)
+        );
+    }
+
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+
+        var inputBox = document.getElementById('locationInput');
+        inputBox.value = "📍 Đang dò tìm tên đường...";
+
+        if (routeLayer) {
+            map.removeControl(routeLayer);
+            routeLayer = null;
+        }
+
+        var apiUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        
+        fetch(apiUrl)
+            .then(res => res.json())
+            .then(data => {
+                var tenDayDu = data.display_name;
+                var shortName = "Vị trí được ghim trên bản đồ";
+                
+                if (tenDayDu) {
+                    var parts = tenDayDu.split(',');
+                    if (parts.length > 2) {
+                        shortName = parts[0] + ', ' + parts[1];
+                    } else {
+                        shortName = tenDayDu;
+                    }
+                }
+                
+                inputBox.value = shortName;
+                updateUserLocation(lat, lng, `<div class="text-center"><strong class="text-primary"><i class="fas fa-thumbtack"></i> Vị trí ghim:</strong><br>${shortName}</div>`);
+            })
+            .catch(err => {
+                inputBox.value = `Tọa độ: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                updateUserLocation(lat, lng, `<b><i class="fas fa-thumbtack"></i> Điểm đã ghim</b>`);
+            });
+    });
+
+    var searchTimeout;
+    function tuDongTimKiem() {
+        var query = document.getElementById('locationInput').value;
+        var list = document.getElementById('suggestionList');
+        
+        if (query.length < 2) { 
+            list.style.display = 'none'; 
+            return; 
+        }
+
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            list.innerHTML = '<li class="list-group-item text-center"><i class="fas fa-spinner fa-spin text-primary"></i> Đang tìm...</li>';
+            list.style.display = 'block';
+
+            var apiUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=5`;
+            
+            fetch(apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = ''; 
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            var li = document.createElement('li');
+                            li.className = 'list-group-item suggestion-item small';
+                            li.innerHTML = `<i class="fas fa-map-marker-alt text-danger me-2"></i> ${item.display_name}`;
+                            li.onclick = function() {
+                                chonDiaDiem(item.lat, item.lon, item.display_name);
+                            };
+                            list.appendChild(li);
+                        });
+                    } else {
+                        list.innerHTML = '<li class="list-group-item text-muted small">Không tìm thấy địa điểm. Thử gõ có dấu đầy đủ nhé!</li>';
+                    }
+                })
+                .catch(err => {
+                    list.style.display = 'none';
+                });
+        }, 500);
+    }
+
+    function chonDiaDiem(lat, lng, name) {
+        document.getElementById('suggestionList').style.display = 'none';
+        var shortName = name.split(',')[0] + ', ' + name.split(',')[1];
+        document.getElementById('locationInput').value = shortName;
+        
+        if (routeLayer) { map.removeControl(routeLayer); routeLayer = null; }
+
+        updateUserLocation(lat, lng, `<div class="text-center"><strong class="text-primary"><i class="fas fa-map-marker-alt"></i> Tâm tìm kiếm:</strong><br>${shortName}</div>`);
+    }
+
+    document.addEventListener('click', function(e) {
+        var input = document.getElementById('locationInput');
+        var list = document.getElementById('suggestionList');
+        if (!input.contains(e.target) && !list.contains(e.target)) {
+            list.style.display = 'none';
+        }
+    });
+
+    // KÍCH HOẠT VẼ BẢN ĐỒ LẦN ĐẦU
+    capNhatBanDo();
+</script>
+{% endblock %}

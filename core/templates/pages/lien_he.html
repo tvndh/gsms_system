@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center mb-5">
+            <h1 class="fw-bold text-primary display-5">LIÊN HỆ VỚI CHÚNG TÔI</h1>
+            <p class="text-muted lead">GSMS luôn sẵn sàng lắng nghe và hỗ trợ bạn 24/7. Hãy gửi lại thông tin để chúng tôi liên lạc lại trong thời gian sớm nhất.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5 mb-4 mb-md-0">
+            <div class="card shadow-sm border-0 h-100 bg-dark text-white">
+                <div class="card-body p-5">
+                    <h3 class="fw-bold text-warning mb-4">Thông Tin Tập Đoàn</h3>
+                    
+                    <div class="d-flex align-items-start mb-4">
+                        <i class="fas fa-map-marker-alt fa-2x text-primary me-3 mt-1"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1">Trụ sở chính</h5>
+                            <p class="mb-0 text-light opacity-75">Tòa nhà GSMS Tower, Quận 1, TP. Hồ Chí Minh</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-start mb-4">
+                        <i class="fas fa-phone-alt fa-2x text-success me-3 mt-1"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1">Hotline CSKH</h5>
+                            <p class="mb-0 text-light opacity-75">1900 8888 (Phím 1)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-envelope fa-2x text-info me-3 mt-1"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1">Email Đối Tác</h5>
+                            <p class="mb-0 text-light opacity-75">admin@gsms.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow border-0 p-4 p-md-5">
+                <h3 class="fw-bold text-dark mb-4">Gửi Thông Điệp Trực Tuyến</h3>
+                
+                <form method="POST" action="{% url 'lien_he' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Họ và Tên</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
+                                <input type="text" name="ho_ten" class="form-control" placeholder="Nhập tên của bạn" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Email phản hồi</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-envelope text-muted"></i></span>
+                                <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tiêu đề</label>
+                        <input type="text" name="tieu_de" class="form-control" placeholder="Bạn cần hỗ trợ về vấn đề gì?" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Nội dung chi tiết</label>
+                        <textarea name="noi_dung" class="form-control" rows="5" placeholder="Mô tả chi tiết yêu cầu của bạn..." required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow">
+                        <i class="fas fa-paper-plane me-2"></i> GỬI THÔNG ĐIỆP
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

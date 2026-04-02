@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{# --- PHẦN 1: MENU RIÊNG CHO NHÂN VIÊN (POS) --- #}
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm border-bottom border-success">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-success" href="{% url 'staff_pos' %}">
+            <i class="fas fa-cash-register"></i> POS SYSTEM
+        </a>
+        <div class="d-flex align-items-center ms-auto">
+            <a href="{% url 'staff_pos' %}" class="btn btn-outline-light btn-sm me-2 active">
+                <i class="fas fa-gas-pump"></i> Bán Hàng
+            </a>
+
+            {% if user.role != 'admin' %}
+            <a href="{% url 'staff_chot_ca' %}" class="btn btn-danger btn-sm me-3 fw-bold shadow-sm">
+                <i class="fas fa-sign-out-alt"></i> Chốt Ca & Về
+            </a>
+            {% endif %}
+            
+            <span class="text-white border-start ps-3 d-none d-md-block">
+                {{ user.get_role_display }}: <strong>{{ user.username }}</strong>
+            </span>
+
+            {% if user.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-warning btn-sm ms-3 fw-bold text-dark shadow-sm">
+                <i class="fas fa-user-shield"></i> Về Admin
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{# --- PHẦN 2: GIAO DIỆN BÁN HÀNG --- #}
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+        <div>
+            {% if tram %}
+                <h3 class="text-success m-0 fw-bold"><i class="fas fa-store-alt text-danger"></i> {{ tram.ten_tram }}</h3>
+                <small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ tram.dia_chi }}</small>
+            {% else %}
+                <h3 class="text-danger m-0 fw-bold"><i class="fas fa-exclamation-triangle"></i> CHƯA PHÂN CÔNG TRẠM</h3>
+                <small class="text-muted">Vui lòng liên hệ Giám đốc để gán Trạm trực thuộc.</small>
+            {% endif %}
+        </div>
+        
+        <div>
+            {% if user.role == 'admin' %}
+                <span class="badge bg-danger fs-6 py-2 shadow-sm"><i class="fas fa-crown"></i> Giám đốc Toàn quyền</span>
+            {% elif user.role == 'tram_truong' %}
+                <span class="badge bg-primary fs-6 py-2 shadow-sm"><i class="fas fa-star"></i> Cửa hàng trưởng</span>
+                <a href="{% url 'bao_cao_tram' %}" class="btn btn-warning btn-sm ms-2 shadow-sm"><i class="fas fa-chart-line"></i> Báo cáo Trạm</a>
+            {% else %}
+                <span class="badge bg-secondary fs-6 py-2 shadow-sm"><i class="fas fa-user-tie"></i> Nhân viên Bơm xăng</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if bon_can_canh_bao %}
+    <div class="alert alert-danger shadow-sm border-danger border-2 mb-4">
+        <h5 class="fw-bold text-danger mb-2"><i class="fas fa-exclamation-triangle blink-animation"></i> CẢNH BÁO: CÓ BỒN CHỨA SẮP CẠN!</h5>
+        <ul class="mb-0">
+            {% for b in bon_can_canh_bao %}
+            <li>
+                <strong>{{ b.ten_bon }} ({{ b.get_loai_nhien_lieu_display }})</strong> 
+                chỉ còn <strong class="text-danger fs-5">{{ b.muc_hien_tai|floatformat:0 }} Lít</strong> 
+                ({{ b.phan_tram }}%). 
+                {% if user.role == 'tram_truong' %}
+                    <a href="{% url 'bao_cao_tram' %}" class="btn btn-sm btn-outline-danger ms-2 py-0">Đến trang Gửi lệnh nhập hàng</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card shadow-sm mb-4 h-100 border-0">
+                <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-gas-pump"></i> BƠM NHIÊN LIỆU</h5>
+                    <span class="badge bg-light text-success fw-bold">Trạng thái: Sẵn sàng</span>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    
+                    {% if not tram %}
+                        <div class="alert alert-danger text-center py-5">
+                            <i class="fas fa-lock fa-4x mb-3"></i>
+                            <h4>MÁY POS ĐÃ BỊ KHÓA</h4>
+                            <p>Tài khoản của bạn chưa được liên kết với bất kỳ Trạm Xăng nào.<br>Vui lòng yêu cầu Admin vào phần cài đặt User để gán trạm.</p>
+                        </div>
+                    {% else %}
+                    
+                        <form method="POST" action="{% url 'xu_ly_ban_hang' %}" id="posForm">
+                            {% csrf_token %}
+                            <input type="hidden" name="loai_giao_dich" value="xang_dau">
+                            
+                            <label class="form-label fw-bold text-secondary mb-2"><i class="fas fa-filter"></i> CHỌN NHIÊN LIỆU (DỮ LIỆU THỰC TẾ CỦA TRẠM):</label>
+                            
+                            <div class="row g-2 mb-4">
+                                {% for bon in ds_bon %}
+                                <div class="col-6 col-lg-3">
+                                    <input type="radio" class="btn-check" name="loai_nhien_lieu" id="bon_{{ bon.loai_nhien_lieu }}" value="{{ bon.loai_nhien_lieu }}" {% if forloop.first %}checked{% endif %}>
+                                    <label class="btn w-100 py-3 fw-bold border-2 h-100 shadow-sm
+                                        {% if bon.loai_nhien_lieu == 'A95' %}btn-outline-warning
+                                        {% elif bon.loai_nhien_lieu == 'E5' %}btn-outline-success
+                                        {% elif bon.loai_nhien_lieu == 'E10' %}btn-outline-info
+                                        {% else %}btn-outline-primary{% endif %}
+                                        " for="bon_{{ bon.loai_nhien_lieu }}">
+                                        
+                                        <div class="fs-5">{{ bon.get_loai_nhien_lieu_display }}</div>
+                                        <div class="small text-danger fw-bold fs-6 mt-1">
+                                            {{ bon.gia_ban_hien_tai|floatformat:0 }} đ
+                                        </div>
+                                        <hr class="my-1 opacity-25">
+                                        <div class="small {% if bon.muc_hien_tai < 100 %}text-danger blink-animation{% else %}text-muted{% endif %}">
+                                            Kho: {{ bon.muc_hien_tai|floatformat:0 }}L
+                                        </div>
+                                    </label>
+                                </div>
+                                {% empty %}
+                                <div class="alert alert-warning w-100 text-center">Trạm này chưa có bồn chứa nào. Không thể bán hàng!</div>
+                                {% endfor %}
+                            </div>
+
+                            <label class="form-label fw-bold text-secondary mb-2"><i class="fas fa-money-bill-wave"></i> NHẬP SỐ TIỀN (VNĐ):</label>
+                            <div class="input-group input-group-lg mb-3 shadow-sm">
+                                <span class="input-group-text bg-white fw-bold text-success border-end-0">VNĐ</span>
+                                <input type="text" id="inputTienHienThi" class="form-control fw-bold text-success fs-1 text-end border-start-0" placeholder="0" required oninput="formatTien(this)">
+                                <input type="hidden" name="so_tien" id="inputTienThucTe">
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex mb-4">
+                                <button type="button" class="btn btn-white border flex-fill fw-bold py-2 shadow-sm" onclick="setMoney(20000)">20k</button>
+                                <button type="button" class="btn btn-white border flex-fill fw-bold py-2 shadow-sm" onclick="setMoney(50000)">50k</button>
+                                <button type="button" class="btn btn-white border flex-fill fw-bold py-2 shadow-sm" onclick="setMoney(100000)">100k</button>
+                                <button type="button" class="btn btn-white border flex-fill fw-bold py-2 shadow-sm" onclick="setMoney(500000)">500k</button>
+                                <button type="button" class="btn btn-white border flex-fill fw-bold py-2 shadow-sm text-primary" onclick="setMoney(1000000)">1 Triệu</button>
+                            </div>
+
+                            <hr class="text-secondary opacity-25 mb-4">
+
+                            <button type="submit" class="btn btn-success w-100 py-3 fw-bold fs-3 shadow text-uppercase btn-lg" {% if not ds_bon %}disabled{% endif %}>
+                                <i class="fas fa-print me-2"></i> XUẤT HÓA ĐƠN & BƠM
+                            </button>
+                        </form>
+                    {% endif %} 
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-history"></i> 
+                        {% if user.role == 'tram_truong' %}
+                            GIAO DỊCH TOÀN TRẠM
+                        {% else %}
+                            LỊCH SỬ CA NÀY
+                        {% endif %}
+                    </h5>
+                    <span class="badge bg-danger blink-animation">Live</span>
+                </div>
+                
+                <div class="card-body p-0 overflow-auto bg-white" style="max-height: 600px;">
+                    <ul class="list-group list-group-flush">
+                        {% for hd in lich_su_ban %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-bottom">
+                            <div>
+                                <div class="fw-bold text-dark d-flex align-items-center">
+                                    <span class="badge bg-secondary me-2">{{ forloop.counter }}</span>
+                                    {{ hd.ma_hd }}
+                                </div>
+                                <small class="text-muted"><i class="far fa-clock"></i> {{ hd.thoi_gian|date:"H:i:s" }}</small>
+                                
+                                {% if user.role == 'tram_truong' %}
+                                <br><small class="text-primary"><i class="fas fa-user"></i> {{ hd.nhan_vien.username }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-success fs-5">+ {{ hd.tong_tien|floatformat:0 }}</div>
+                                <span class="badge bg-light text-dark border">Tiền mặt</span>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center text-muted py-5">
+                            <i class="fas fa-receipt fa-3x mb-3 opacity-25"></i>
+                            <p>Chưa có giao dịch nào trong ca này.</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-white p-3 border-top">
+                    {% if user.role != 'admin' %}
+                    <a href="{% url 'staff_chot_ca' %}" class="btn btn-outline-danger w-100 fw-bold py-2">
+                        <i class="fas fa-file-invoice-dollar"></i> 
+                        {% if user.role == 'tram_truong' %}
+                            XUẤT BÁO CÁO DOANH THU TRẠM
+                        {% else %}
+                            TỔNG KẾT DOANH THU CA
+                        {% endif %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hiệu ứng nhấp nháy cho chữ Live */
+    @keyframes blink { 50% { opacity: 0.5; } }
+    .blink-animation { animation: blink 1s infinite; }
+    .btn-white { background-color: white; }
+    .btn-white:hover { background-color: #f8f9fa; border-color: #adb5bd; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Hàm 1: Tự động format số và thêm dấu chấm
+    function formatTien(input) {
+        // Lọc bỏ tất cả ký tự không phải là số
+        let value = input.value.replace(/\D/g, '');
+        
+        if (value !== "") {
+            // Định dạng hiển thị có dấu chấm (VD: 50.000)
+            input.value = new Intl.NumberFormat('vi-VN').format(value);
+            
+            // Lấy con số sạch (50000) bỏ vào ô ẩn để gửi cho Backend
+            document.getElementById('inputTienThucTe').value = value;
+        } else {
+            input.value = "";
+            document.getElementById('inputTienThucTe').value = "";
+        }
+    }
+
+    // Hàm 2: Xử lý khi bấm nút 20k, 50k...
+    function setMoney(amount) {
+        let inputHienThi = document.getElementById('inputTienHienThi');
+        
+        // Gán số vào ô hiển thị, sau đó mượn hàm formatTien để nó tự chấm luôn
+        inputHienThi.value = amount;
+        formatTien(inputHienThi); 
+        
+        // Hiệu ứng nháy màu xanh báo hiệu đã bấm
+        inputHienThi.style.backgroundColor = "#d1e7dd";
+        inputHienThi.style.transition = "background-color 0.3s";
+        setTimeout(() => { inputHienThi.style.backgroundColor = "white"; }, 300);
+        
+        inputHienThi.focus();
+    }
+</script>
+{% endblock %}

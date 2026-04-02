@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid p-0 mb-5">
+    <div style="background: url('{{ img }}') no-repeat center center; background-size: cover; height: 400px; position: relative;">
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); padding: 20px; color: white; text-align: center;">
+            <h1 class="display-4 fw-bold">{{ title }}</h1>
+        </div>
+    </div>
+</div>
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+        </ol>
+    </nav>
+    <div class="row">
+        <div class="col-md-8">
+            <h3 class="text-primary border-bottom pb-2">Chi tiết lĩnh vực</h3>
+            <p class="lead mt-4">{{ content }}</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam...</p>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Liên hệ hợp tác</div>
+                <div class="card-body">
+                    <p><strong>Hotline:</strong> 1900 1000</p>
+                    <p><strong>Email:</strong> kinhdoanh@gsms.vn</p>
+                    <button class="btn btn-outline-primary w-100">Gửi yêu cầu báo giá</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

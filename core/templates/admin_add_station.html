@@ -1,0 +1,186 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map-picker { height: 500px; width: 100%; border-radius: 10px; border: 2px solid #198754; cursor: crosshair; }
+    .search-btn { cursor: pointer; transition: 0.3s; }
+    .search-btn:hover { background-color: #198754; color: white; }
+</style>
+
+<div class="container py-4">
+    <h2 class="fw-bold text-success mb-4"><i class="fas fa-store"></i> Khởi Tạo Trạm Xăng Mới</h2>
+
+    <div class="row">
+        <div class="col-md-7 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white">
+                    <i class="fas fa-map-marked-alt text-warning"></i> <b>Bản Đồ Vệ Tinh</b>
+                </div>
+                <div class="card-body p-2">
+                    <div class="alert alert-info py-2 mb-2 small">
+                        <i class="fas fa-mouse-pointer"></i> <b>Mẹo:</b> Click trực tiếp lên bản đồ để lấy tọa độ chuẩn xác và tự động tạo địa chỉ.
+                    </div>
+                    <div id="map-picker"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-info-circle"></i> <b>Thông Tin Trạm</b>
+                </div>
+                <div class="card-body bg-light">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên Trạm Xăng:</label>
+                            <input type="text" name="ten_tram" class="form-control border-success" placeholder="VD: CHXD Số 10 - Tân Bình" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Địa chỉ (Gõ tìm kiếm hoặc Click map):</label>
+                            <div class="input-group shadow-sm">
+                                <textarea name="dia_chi" id="input-dia-chi" class="form-control border-primary" rows="2" placeholder="Nhập địa chỉ tương đối rồi bấm nút tìm kiếm 👉" required></textarea>
+                                <button type="button" class="input-group-text search-btn text-primary border-primary fw-bold" onclick="timDiaChiTrenMap()" title="Định vị trên bản đồ">
+                                    <i class="fas fa-search-location fs-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-danger">Vĩ độ (Lat):</label>
+                                <input type="text" name="latitude" id="input-lat" class="form-control bg-white" readonly required placeholder="Đang chờ...">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-danger">Kinh độ (Lng):</label>
+                                <input type="text" name="longitude" id="input-lng" class="form-control bg-white" readonly required placeholder="Đang chờ...">
+                            </div>
+                        </div>
+
+                        <div class="mb-4 p-3 border rounded bg-white shadow-sm">
+                            <label class="form-label fw-bold text-dark border-bottom pb-2 w-100"><i class="fas fa-gas-pump text-secondary"></i> Các loại nhiên liệu kinh doanh:</label>
+                            <div class="d-flex flex-wrap gap-3 mt-3">
+                                <div class="form-check">
+                                    <input class="form-check-input border-warning" type="checkbox" name="nhien_lieu" value="A95" id="chkA95" checked>
+                                    <label class="form-check-label fw-bold text-warning" for="chkA95">Xăng RON 95</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input border-success" type="checkbox" name="nhien_lieu" value="E5" id="chkE5" checked>
+                                    <label class="form-check-label fw-bold text-success" for="chkE5">Xăng E5</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input border-info" type="checkbox" name="nhien_lieu" value="E10" id="chkE10">
+                                    <label class="form-check-label fw-bold text-info" for="chkE10">Xăng E10</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input border-primary" type="checkbox" name="nhien_lieu" value="DO" id="chkDO" checked>
+                                    <label class="form-check-label fw-bold text-primary" for="chkDO">Dầu DO</label>
+                                </div>
+                            </div>
+                            <div class="form-text text-danger mt-2 small"><i class="fas fa-info-circle"></i> Trạm sẽ chỉ cấp bồn chứa cho các nhiên liệu được tích chọn (E10 có thể không cần bán).</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-3 fw-bold fs-5 shadow">
+                            <i class="fas fa-save"></i> LƯU VÀ TẠO TRẠM
+                        </button>
+                        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary w-100 mt-2">Hủy bỏ</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // 1. Khởi tạo bản đồ ở trung tâm TP.HCM
+    var map = L.map('map-picker').setView([10.762622, 106.660172], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+
+    var marker = null;
+    var gasIcon = L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', 
+        iconSize: [40, 40], iconAnchor: [20, 40]
+    });
+
+    // 2. Hàm dùng chung để cập nhật Marker và Form
+    function capNhatGiaoDien(lat, lng) {
+        if (marker) { map.removeLayer(marker); }
+        marker = L.marker([lat, lng], {icon: gasIcon}).addTo(map);
+        marker.bindPopup("<strong class='text-success'>Vị trí trạm xăng</strong>").openPopup();
+        
+        document.getElementById('input-lat').value = lat.toFixed(6);
+        document.getElementById('input-lng').value = lng.toFixed(6);
+    }
+
+    // 3. TÍNH NĂNG 1: Click Bản Đồ -> Lấy Tọa Độ & Dịch ra Địa Chỉ (Reverse Geocoding)
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+        capNhatGiaoDien(lat, lng);
+
+        var addressInput = document.getElementById('input-dia-chi');
+        var oldAddress = addressInput.value;
+        addressInput.value = "📍 Đang dò tìm tên đường từ vệ tinh...";
+
+        // Gọi API Nominatim để dịch tọa độ ra tên đường
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    // Lấy địa chỉ ngắn gọn (Bỏ quốc gia)
+                    let parts = data.display_name.split(',');
+                    if(parts.length > 4) parts = parts.slice(0, 4); 
+                    addressInput.value = parts.join(',').trim();
+                } else {
+                    addressInput.value = oldAddress; // Phục hồi nếu lỗi
+                }
+            })
+            .catch(() => {
+                addressInput.value = oldAddress;
+            });
+    });
+
+    // 4. TÍNH NĂNG 2: Gõ Địa Chỉ -> Bay Bản Đồ tới đó (Forward Geocoding)
+    window.timDiaChiTrenMap = function() {
+        var query = document.getElementById('input-dia-chi').value.trim();
+        if (!query || query.includes("Đang dò tìm")) {
+            alert("Vui lòng nhập một địa chỉ cụ thể để tìm kiếm!");
+            return;
+        }
+
+        // Thay đổi icon nút tìm kiếm thành xoay xoay (loading)
+        var btnIcon = document.querySelector('.search-btn i');
+        btnIcon.className = "fas fa-spinner fa-spin fs-4 text-warning";
+
+        // Thêm "Việt Nam" để tăng độ chính xác
+        var searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ", Việt Nam")}&limit=1`;
+
+        fetch(searchUrl)
+            .then(res => res.json())
+            .then(data => {
+                btnIcon.className = "fas fa-search-location fs-4"; // Trả lại icon
+                
+                if (data && data.length > 0) {
+                    var lat = parseFloat(data[0].lat);
+                    var lng = parseFloat(data[0].lon);
+                    
+                    // Bay tới vị trí đó và zoom gần lại
+                    map.flyTo([lat, lng], 16);
+                    capNhatGiaoDien(lat, lng);
+                } else {
+                    alert("Không tìm thấy tọa độ cho địa chỉ này. Vui lòng gõ rõ hơn (Thêm Phường, Quận) hoặc click trực tiếp lên bản đồ!");
+                }
+            })
+            .catch(() => {
+                btnIcon.className = "fas fa-search-location fs-4";
+                alert("Lỗi mạng, không thể kết nối tới máy chủ bản đồ.");
+            });
+    };
+</script>
+{% endblock %}

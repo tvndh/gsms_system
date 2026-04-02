@@ -1,0 +1,155 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary fw-bold"><i class="fas fa-search-dollar"></i> TRUNG TÂM ĐIỀU HÀNH GIÁ XĂNG DẦU</h2>
+            </div>
+
+            <div class="card shadow border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-exclamation-circle blink-animation"></i> LƯU Ý BẢO MẬT TỐI CAO</h5>
+                </div>
+                <div class="card-body bg-light p-4">
+                    <p class="text-muted mb-4">Mọi thay đổi tại đây sẽ ngay lập tức được <strong>ĐỒNG BỘ TRỰC TIẾP</strong> xuống hệ thống Máy POS của tất cả các Trạm xăng trên toàn quốc. Vui lòng kiểm tra kỹ con số trước khi bấm Cập nhật!</p>
+                    
+                    <form method="POST" action="{% url 'quan_ly_gia' %}">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-4 g-3">
+                            
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card border-warning h-100 shadow-sm">
+                                    <div class="card-header bg-warning text-dark text-center fw-bold fs-6">Xăng RON 95</div>
+                                    <div class="card-body text-center px-2">
+                                        <label class="text-muted small mb-2">Giá hiện tại: {% if gia_hien_tai.A95 %}{{ gia_hien_tai.A95.gia_ban|floatformat:0 }}{% else %}Chưa xét{% endif %} đ</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="hien_thi_A95" class="form-control text-center fw-bold text-danger fs-6" 
+                                                   value="{% if gia_hien_tai.A95 %}{{ gia_hien_tai.A95.gia_ban|floatformat:0 }}{% else %}24500{% endif %}" 
+                                                   required oninput="formatTien(this, 'hidden_A95')">
+                                            <input type="hidden" name="gia_A95" id="hidden_A95" 
+                                                   value="{% if gia_hien_tai.A95 %}{{ gia_hien_tai.A95.gia_ban|floatformat:0 }}{% else %}24500{% endif %}">
+                                            <span class="input-group-text bg-white">đ</span>
+                                        </div>
+                                    </div>
+                                    {% if gia_hien_tai.A95 %}
+                                    <div class="card-footer bg-white text-center text-muted p-1" style="font-size: 0.7rem;">
+                                        Cập nhật:<br>{{ gia_hien_tai.A95.ngay_cap_nhat|date:"d/m/Y H:i" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card border-success h-100 shadow-sm">
+                                    <div class="card-header bg-success text-white text-center fw-bold fs-6">Xăng E5 RON 92</div>
+                                    <div class="card-body text-center px-2">
+                                        <label class="text-muted small mb-2">Giá hiện tại: {% if gia_hien_tai.E5 %}{{ gia_hien_tai.E5.gia_ban|floatformat:0 }}{% else %}Chưa xét{% endif %} đ</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="hien_thi_E5" class="form-control text-center fw-bold text-success fs-6" 
+                                                   value="{% if gia_hien_tai.E5 %}{{ gia_hien_tai.E5.gia_ban|floatformat:0 }}{% else %}23500{% endif %}" 
+                                                   required oninput="formatTien(this, 'hidden_E5')">
+                                            <input type="hidden" name="gia_E5" id="hidden_E5" 
+                                                   value="{% if gia_hien_tai.E5 %}{{ gia_hien_tai.E5.gia_ban|floatformat:0 }}{% else %}23500{% endif %}">
+                                            <span class="input-group-text bg-white">đ</span>
+                                        </div>
+                                    </div>
+                                    {% if gia_hien_tai.E5 %}
+                                    <div class="card-footer bg-white text-center text-muted p-1" style="font-size: 0.7rem;">
+                                        Cập nhật:<br>{{ gia_hien_tai.E5.ngay_cap_nhat|date:"d/m/Y H:i" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card border-info h-100 shadow-sm">
+                                    <div class="card-header bg-info text-white text-center fw-bold fs-6">Xăng Sinh Học E10</div>
+                                    <div class="card-body text-center px-2">
+                                        <label class="text-muted small mb-2">Giá hiện tại: {% if gia_hien_tai.E10 %}{{ gia_hien_tai.E10.gia_ban|floatformat:0 }}{% else %}Chưa xét{% endif %} đ</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="hien_thi_E10" class="form-control text-center fw-bold text-info fs-6" 
+                                                   value="{% if gia_hien_tai.E10 %}{{ gia_hien_tai.E10.gia_ban|floatformat:0 }}{% else %}24000{% endif %}" 
+                                                   required oninput="formatTien(this, 'hidden_E10')">
+                                            <input type="hidden" name="gia_E10" id="hidden_E10" 
+                                                   value="{% if gia_hien_tai.E10 %}{{ gia_hien_tai.E10.gia_ban|floatformat:0 }}{% else %}24000{% endif %}">
+                                            <span class="input-group-text bg-white">đ</span>
+                                        </div>
+                                    </div>
+                                    {% if gia_hien_tai.E10 %}
+                                    <div class="card-footer bg-white text-center text-muted p-1" style="font-size: 0.7rem;">
+                                        Cập nhật:<br>{{ gia_hien_tai.E10.ngay_cap_nhat|date:"d/m/Y H:i" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card border-primary h-100 shadow-sm">
+                                    <div class="card-header bg-primary text-white text-center fw-bold fs-6">Dầu DO 0.05S</div>
+                                    <div class="card-body text-center px-2">
+                                        <label class="text-muted small mb-2">Giá hiện tại: {% if gia_hien_tai.DO %}{{ gia_hien_tai.DO.gia_ban|floatformat:0 }}{% else %}Chưa xét{% endif %} đ</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="hien_thi_DO" class="form-control text-center fw-bold text-primary fs-6" 
+                                                   value="{% if gia_hien_tai.DO %}{{ gia_hien_tai.DO.gia_ban|floatformat:0 }}{% else %}21000{% endif %}" 
+                                                   required oninput="formatTien(this, 'hidden_DO')">
+                                            <input type="hidden" name="gia_DO" id="hidden_DO" 
+                                                   value="{% if gia_hien_tai.DO %}{{ gia_hien_tai.DO.gia_ban|floatformat:0 }}{% else %}21000{% endif %}">
+                                            <span class="input-group-text bg-white">đ</span>
+                                        </div>
+                                    </div>
+                                    {% if gia_hien_tai.DO %}
+                                    <div class="card-footer bg-white text-center text-muted p-1" style="font-size: 0.7rem;">
+                                        Cập nhật:<br>{{ gia_hien_tai.DO.ngay_cap_nhat|date:"d/m/Y H:i" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100 fw-bold fs-5 py-3 shadow mt-3" onclick="return confirm('Bạn có chắc chắn muốn ÁP DỤNG BẢNG GIÁ MỚI cho toàn hệ thống không?');">
+                            <i class="fas fa-broadcast-tower"></i> PHÁT LỆNH ĐỒNG BỘ GIÁ
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes blink { 50% { opacity: 0.5; } }
+    .blink-animation { animation: blink 1.5s infinite; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Hàm format tiền (hỗ trợ truyền ID của thẻ ẩn)
+    function formatTien(inputElement, hiddenInputId) {
+        // Lọc bỏ ký tự lạ, chỉ giữ số
+        let value = inputElement.value.replace(/\D/g, '');
+        
+        if (value !== "") {
+            // Định dạng hiển thị có dấu chấm (VD: 24.500)
+            inputElement.value = new Intl.NumberFormat('vi-VN').format(value);
+            // Ghi số thực (VD: 24500) vào thẻ ẩn
+            document.getElementById(hiddenInputId).value = value;
+        } else {
+            inputElement.value = "";
+            document.getElementById(hiddenInputId).value = "";
+        }
+    }
+
+    // Tự động thêm dấu chấm cho các mức giá đang có sẵn ngay khi vừa tải trang xong
+    document.addEventListener("DOMContentLoaded", function() {
+        formatTien(document.getElementById('hien_thi_A95'), 'hidden_A95');
+        formatTien(document.getElementById('hien_thi_E5'), 'hidden_E5');
+        // ĐÃ BỔ SUNG KHỞI ĐỘNG E10
+        formatTien(document.getElementById('hien_thi_E10'), 'hidden_E10');
+        formatTien(document.getElementById('hien_thi_DO'), 'hidden_DO');
+    });
+</script>
+{% endblock %}

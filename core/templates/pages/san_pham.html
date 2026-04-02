@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="text-uppercase fw-bold text-primary">DANH MỤC SẢN PHẨM & DỊCH VỤ</h2>
+        <p class="text-muted">Chúng tôi cung cấp các sản phẩm hóa dầu và nhiên liệu chất lượng cao theo tiêu chuẩn Quốc tế.</p>
+    </div>
+
+    <div class="row">
+        {% for sp in ds_sp %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+                <div class="position-relative">
+                    <img src="{{ sp.anh_sp }}" class="card-img-top p-3" style="height: 220px; object-fit: contain;">
+                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">Hot</span>
+                </div>
+                
+                <div class="card-body">
+                    <small class="text-muted text-uppercase fw-bold">{{ sp.danh_muc.ten_dm }}</small>
+                    <h5 class="fw-bold mt-2">{{ sp.ten_sp }}</h5>
+                    <p class="small text-secondary" style="min-height: 40px;">{{ sp.mo_ta|truncatechars:60 }}</p>
+                    
+                    <h4 class="text-primary fw-bold mb-3">
+                        {{ sp.gia_tham_khao|floatformat:0 }} <small class="fs-6 text-muted">VNĐ</small>
+                    </h4>
+
+                    <div class="d-grid gap-2">
+                        <a href="tel:19001000" class="btn btn-outline-primary fw-bold">
+                            <i class="fas fa-phone-alt"></i> LIÊN HỆ BÁO GIÁ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" width="100" class="mb-3 opacity-50">
+            <p class="text-muted">Danh mục đang được cập nhật...</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .hover-card { transition: transform 0.3s; }
+    .hover-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
+</style>
+{% endblock %}
