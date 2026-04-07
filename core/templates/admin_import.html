@@ -25,7 +25,6 @@
         </div>
 
         <div class="col-md-4 mb-4">
-            
             {% if ds_yeu_cau %}
             <div class="card border-danger mb-4 shadow-sm">
                 <div class="card-header bg-danger text-white fw-bold py-2">
@@ -44,11 +43,12 @@
                             </div>
                             {% endif %}
                             
-                            <div class="mt-3 text-end">
-                              <button type="button" class="btn btn-sm btn-danger shadow-sm fw-bold" onclick="dienFormTuDong('{{ yc.tram.id }}', '{{ yc.loai_nhien_lieu }}', {{ yc.so_luong }})">
-    <i class="fas fa-magic"></i> Lập lệnh chuyển hàng
-</button>
-                                    <i class="fas fa-check-circle"></i> Đánh dấu đã giao
+                            <div class="mt-3 text-end d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-sm btn-danger shadow-sm fw-bold" onclick="dienFormTuDong('{{ yc.tram.id }}', '{{ yc.loai_nhien_lieu }}', {{ yc.so_luong }})">
+                                    <i class="fas fa-magic"></i> Lập lệnh
+                                </button>
+                                <a href="{% url 'duyet_yeu_cau' yc.id %}" class="btn btn-sm btn-success shadow-sm fw-bold">
+                                    <i class="fas fa-check-circle"></i> Đã giao
                                 </a>
                             </div>
                         </li>
@@ -58,7 +58,7 @@
             </div>
             {% endif %}
 
-            <div class="card shadow border-0">
+            <div class="card shadow border-0" id="form-nhap-hang">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0 fw-bold"><i class="fas fa-clipboard-check"></i> Lệnh Nhập Hàng</h5>
                 </div>
@@ -75,24 +75,31 @@
                         </div>
                     </div>
 
-                    <form method="POST" class="bg-white p-3 rounded shadow-sm">
+                    <form method="POST" action="{% url 'admin_import' %}" class="bg-white p-3 rounded shadow-sm">
                         {% csrf_token %}
+                        
+                        <input type="hidden" name="khoang_cach" id="input_km" value="0">
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold text-success"><i class="fas fa-gas-pump"></i> 1. Chọn Trạm Nhận:</label>
-                            <select class="form-select border-success fw-bold text-dark shadow-sm" id="tram_select"></select>
+                            <select class="form-select border-success fw-bold text-dark shadow-sm" id="tram_select">
+                                <option value="">-- Chọn Trạm Xăng --</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold text-muted"><i class="fas fa-database"></i> 2. Bơm vào bồn nào?</label>
-                            <select name="bon_chua" class="form-select border-secondary shadow-sm" id="bon_select"></select>
+                            <select name="bon_chua" class="form-select border-secondary shadow-sm" id="bon_select" required>
+                                <option value="">-- Vui lòng chọn Trạm trước --</option>
+                            </select>
                         </div>
 
                         <hr class="text-muted">
 
                         <div class="mb-3">
                             <label class="form-label fw-bold text-danger"><i class="fas fa-industry"></i> 3. Nguồn lấy hàng (Kho):</label>
-                            <select name="ncc_id" class="form-select border-danger fw-bold shadow-sm" id="ncc_select">
+                            <select name="ncc_id" class="form-select border-danger fw-bold shadow-sm" id="ncc_select" required>
+                                <option value="">-- Chọn Kho Xăng --</option>
                                 {% for ncc in ds_ncc %}
                                 <option value="{{ ncc.id }}">{{ ncc.ten_ncc }}</option>
                                 {% empty %}
@@ -110,7 +117,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-success w-100 fw-bold py-3 shadow text-uppercase fs-5">
-                            <i class="fas fa-file-signature"></i> XÁC NHẬN LỆNH NHẬP KHO
+                            <i class="fas fa-file-signature"></i> XÁC NHẬN LỆNH
                         </button>
                     </form>
                 </div>
@@ -142,67 +149,78 @@
     var stationIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40] });
     var warehouseIcon = L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/2897/2897817.png', iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -30] });
 
-    var destMarker = L.marker([0,0], {icon: stationIcon}).addTo(map);
+    var destMarker = null; 
     var routeLayer = L.layerGroup().addTo(map);
 
     function parseCoord(val) { return parseFloat(String(val).replace(',', '.')) || 0; }
 
     nccList.forEach(ncc => {
         L.marker([parseCoord(ncc.lat), parseCoord(ncc.lng)], {icon: warehouseIcon})
-        .bindPopup(`<strong class='text-danger'>${ncc.name}</strong>`)
+        .bindPopup(`<strong class='text-danger'>Kho: ${ncc.name}</strong>`)
         .addTo(map);
     });
 
+    // ==========================================
+    // HÀM CẬP NHẬT GIAO DIỆN CHÍNH
+    // ==========================================
     function capNhatToanDien() {
         var tramSelect = document.getElementById('tram_select');
         var nccSelect = document.getElementById('ncc_select');
-        if(!tramSelect || !nccSelect) return;
+        if(!tramSelect) return;
 
         var tramId = String(tramSelect.value);
-        var nccId = String(nccSelect.value);
-
         var tram = stationList.find(s => String(s.id) === tramId);
-        var ncc = nccList.find(n => String(n.id) === nccId);
 
-        if(!tram || !ncc) return;
+        if(!tram) {
+            document.getElementById('bon_select').innerHTML = '<option value="">-- Vui lòng chọn Trạm trước --</option>';
+            if(destMarker) map.removeLayer(destMarker);
+            routeLayer.clearLayers();
+            document.getElementById('info_tram').innerText = "Đang chờ...";
+            document.getElementById('info_distance').innerText = "Đang chờ...";
+            document.getElementById('input_km').value = 0;
+            return; 
+        }
 
         var bonSelect = document.getElementById('bon_select');
         var oldBonValue = bonSelect.value;
-        bonSelect.innerHTML = '';
+        bonSelect.innerHTML = '<option value="">-- Chọn Bồn chứa --</option>';
+        
         var tanksOfTram = tankList.filter(t => String(t.tram_id) === tramId);
         
-        var seenTypes = new Set();
-        var uniqueTanks = [];
-        tanksOfTram.forEach(t => {
-            if (!seenTypes.has(t.loai)) {
-                seenTypes.add(t.loai);
-                uniqueTanks.push(t);
-            }
-        });
-
-        if (uniqueTanks.length === 0) {
+        if (tanksOfTram.length === 0) {
             bonSelect.innerHTML = '<option disabled selected>Trạm này chưa có bồn</option>';
         } else {
-            uniqueTanks.forEach(t => {
+            tanksOfTram.forEach(t => {
                 var color = t.phan_tram < 15 ? "🔴" : (t.phan_tram < 50 ? "🟡" : "🟢");
                 var freeSpace = t.suc_chua - t.muc_hien_tai;
                 bonSelect.innerHTML += `<option value="${t.id}">${color} ${t.ten_bon} (${t.loai}) - Còn trống: ${freeSpace.toFixed(0)}L</option>`;
             });
-            if (oldBonValue && uniqueTanks.find(t => String(t.id) === String(oldBonValue))) {
+            if (oldBonValue && tanksOfTram.find(t => String(t.id) === String(oldBonValue))) {
                 bonSelect.value = oldBonValue;
             }
         }
 
-        destMarker.setLatLng([parseCoord(tram.lat), parseCoord(tram.lng)]);
+        if (!destMarker) {
+            destMarker = L.marker([parseCoord(tram.lat), parseCoord(tram.lng)], {icon: stationIcon}).addTo(map);
+        } else {
+            destMarker.setLatLng([parseCoord(tram.lat), parseCoord(tram.lng)]).addTo(map);
+        }
         destMarker.bindPopup(`<strong class='text-success'>${tram.name}</strong><br>Điểm nhận hàng`).openPopup();
-        map.setView([parseCoord(tram.lat), parseCoord(tram.lng)], 12);
         
-        // --- BẢO VỆ CHỐNG LỖI HIỂN THỊ ---
         var elTram = document.getElementById('info_tram');
+        if (elTram) elTram.innerText = tram.name;
+
+        if(!nccSelect || !nccSelect.value || nccSelect.value === "") {
+            map.setView([parseCoord(tram.lat), parseCoord(tram.lng)], 13);
+            return;
+        }
+
+        var nccId = String(nccSelect.value);
+        var ncc = nccList.find(n => String(n.id) === nccId);
+        if(!ncc) return;
+
         var elNcc = document.getElementById('info_ncc');
         var elDist = document.getElementById('info_distance');
-
-        if (elTram) elTram.innerText = tram.name;
         if (elNcc) elNcc.innerText = ncc.name;
         if (elDist) elDist.innerHTML = '<i class="fas fa-spinner fa-spin text-warning"></i> Đang đo...';
 
@@ -224,6 +242,10 @@
                 if (data.routes && data.routes.length > 0) {
                     var distKm = (data.routes[0].distance / 1000).toFixed(2);
                     if (elDist) elDist.innerHTML = `<span class='text-primary fw-bold fs-5'>${distKm} km</span>`;
+                    
+                    // LƯU SỐ KM VÀO Ô ẨN CHO PYTHON
+                    document.getElementById('input_km').value = distKm;
+                    
                     var coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
                     var route = L.polyline(coords, {color: '#ff5722', weight: 6, dashArray: '10, 10', opacity: 0.9}).addTo(routeLayer);
                     map.fitBounds(route.getBounds(), {padding: [50, 50]});
@@ -234,6 +256,10 @@
             .catch(err => {
                 var dist = map.distance([t_lat, t_lng], [n_lat, n_lng]) / 1000;
                 if (elDist) elDist.innerHTML = `<span class='text-danger fw-bold fs-5'>${dist.toFixed(2)} km</span> <small>(Chim bay)</small>`;
+                
+                // LƯU SỐ KM VÀO Ô ẨN NẾU LỖI MẠNG (Đường chim bay)
+                document.getElementById('input_km').value = dist.toFixed(2);
+                
                 var straightLine = L.polyline([[n_lat, n_lng], [t_lat, t_lng]], {color: 'red', weight: 4, dashArray: '5, 5'}).addTo(routeLayer);
                 map.fitBounds(straightLine.getBounds(), {padding: [50, 50]});
             });
@@ -245,29 +271,55 @@
     window.addEventListener('DOMContentLoaded', function() {
         var tramSelect = document.getElementById('tram_select');
         if(stationList.length > 0) {
-            tramSelect.innerHTML = '';
             stationList.forEach(s => {
                 tramSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
             });
         }
-        
-        var nccSelect = document.getElementById('ncc_select');
-        if (nccList.length > 0) {
-            nccSelect.selectedIndex = 0;
-        }
-
-        setTimeout(() => { capNhatToanDien(); }, 500); 
     });
-    // HÀM TỰ ĐỘNG ĐIỀN FORM TỪ YÊU CẦU CỦA TRẠM
+
+    // ==========================================
+    // HÀM TỰ ĐỘNG ĐIỀN FORM & TÌM KHO GẦN NHẤT BẰNG AI
+    // ==========================================
+    
+    // Thuật toán Haversine đo đường chim bay
+    function tinhKhoangCach(lat1, lon1, lat2, lon2) {
+        var R = 6371; 
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
     function dienFormTuDong(tramId, loaiNl, soLuong) {
-        // 1. Chọn đúng Trạm
         var tramSelect = document.getElementById('tram_select');
         tramSelect.value = tramId;
         
-        // Kích hoạt vẽ bản đồ và nạp danh sách Bồn
-        capNhatToanDien();
+        // TỰ ĐỘNG TÌM KHO GẦN NHẤT
+        var tramHienTai = stationList.find(s => String(s.id) === String(tramId));
+        if (tramHienTai && nccList.length > 0) {
+            var minDistance = Infinity;
+            var nearestNccId = "";
+            
+            nccList.forEach(ncc => {
+                var dist = tinhKhoangCach(
+                    parseCoord(tramHienTai.lat), parseCoord(tramHienTai.lng),
+                    parseCoord(ncc.lat), parseCoord(ncc.lng)
+                );
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    nearestNccId = ncc.id;
+                }
+            });
+            
+            // Gán kho gần nhất
+            document.getElementById('ncc_select').value = nearestNccId;
+        }
+        
+        capNhatToanDien(); // Gọi vẽ bản đồ và tính số Km thực tế
 
-        // 2. Chờ 200ms để danh sách bồn kịp nạp xong, sau đó chọn đúng Bồn
         setTimeout(() => {
             var bonSelect = document.getElementById('bon_select');
             for (var i = 0; i < bonSelect.options.length; i++) {
@@ -277,20 +329,14 @@
                 }
             }
             
-            // 3. Điền Số lượng Lít
             document.querySelector('input[name="so_lit"]').value = soLuong;
 
-            // 4. Cuộn màn hình xuống Form và nhấp nháy form màu đỏ để chú ý
-            var theForm = document.querySelector('form');
+            var theForm = document.getElementById('form-nhap-hang');
             theForm.scrollIntoView({behavior: 'smooth', block: 'center'});
             theForm.classList.add('border', 'border-danger', 'border-4');
             
-            // Bỏ viền đỏ sau 2 giây
             setTimeout(() => { theForm.classList.remove('border-danger', 'border-4'); }, 2000);
-            
-            // Focus vào nguồn lấy hàng để Admin chọn Kho
             document.getElementById('ncc_select').focus();
-
         }, 200);
     }
 </script>

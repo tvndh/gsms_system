@@ -14,13 +14,13 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLES, default='staff', verbose_name="Chức vụ")
     full_name = models.CharField(max_length=100, verbose_name="Họ và tên")
     phone = models.CharField(max_length=15, verbose_name="Số điện thoại")
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     
     # Thông tin riêng cho nhân viên
     cccd = models.CharField(max_length=20, blank=True, null=True, verbose_name="CCCD")
     ca_lam_viec = models.CharField(max_length=50, blank=True, null=True, verbose_name="Ca làm việc")
 
-    # MỚI THÊM: Khóa chặt nhân viên vào 1 Trạm Xăng duy nhất
-    # null=True, blank=True vì Admin có thể không cần thuộc trạm nào
+    # Khóa chặt nhân viên vào 1 Trạm Xăng duy nhất
     tram_xang = models.ForeignKey(
         'TramXang', 
         on_delete=models.SET_NULL, 
@@ -69,11 +69,21 @@ class BonChua(models.Model):
     def __str__(self): 
         return f"{self.ten_bon} - {self.loai_nhien_lieu} ({self.tram.ten_tram})"
 
-    # Thuộc tính hỗ trợ hiển thị % trên Dashboard
+    # Thuộc tính hiển thị phần trăm xăng trong bồn
     @property
     def phan_tram(self):
         if self.suc_chua_toi_da == 0: return 0
         return round((self.muc_hien_tai / self.suc_chua_toi_da) * 100, 1)
+
+    # 👇 ĐÃ THÊM: Tự động lấy giá bán hiện tại từ bảng BangGiaNhienLieu
+    @property
+    def gia_ban_hien_tai(self):
+        try:
+            # Tìm giá của loại xăng tương ứng
+            gia_obj = BangGiaNhienLieu.objects.get(loai_nhien_lieu=self.loai_nhien_lieu)
+            return gia_obj.gia_ban
+        except BangGiaNhienLieu.DoesNotExist:
+            return 0  # Nếu Giám đốc chưa cài giá thì mặc định là 0đ
 
 
 # ==========================================
@@ -105,6 +115,10 @@ class NhaCungCap(models.Model):
     sdt = models.CharField(max_length=15)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    ton_kho_A95 = models.FloatField(default=500000)
+    ton_kho_E5 = models.FloatField(default=500000)
+    ton_kho_DO = models.FloatField(default=500000)
+    ton_kho_E10 = models.FloatField(default=500000)
 
     def __str__(self): 
         return self.ten_ncc
@@ -116,6 +130,9 @@ class PhieuNhap(models.Model):
     bon_chua = models.ForeignKey(BonChua, on_delete=models.CASCADE)
     so_lit_nhap = models.FloatField()
     thanh_tien = models.FloatField()
+    gia_nhap_1_lit = models.FloatField(default=0, help_text="Giá mua sỉ từ Kho")
+    cuoc_van_chuyen = models.FloatField(default=0, help_text="Cước xe bồn (dựa trên số Km)")
+    tong_chi_phi = models.FloatField(default=0, help_text="Tiền hàng + Cước vận chuyển")
 
     def __str__(self): 
         return self.ma_pn
@@ -126,14 +143,16 @@ class PhieuNhap(models.Model):
 # ==========================================
 class TinTuc(models.Model):
     tieu_de = models.CharField(max_length=200)
-    anh_bia = models.CharField(max_length=500) 
+    anh_bia = models.ImageField(upload_to='tin_tuc/anh_bia/', null=True, blank=True) 
     tom_tat = models.TextField()
     noi_dung = models.TextField()
     ngay_dang = models.DateTimeField(auto_now_add=True)
 
     def __str__(self): 
         return self.tieu_de
-
+    class Meta:
+        verbose_name = "Tin Tức"
+        verbose_name_plural = "Quản lý Tin Tức"
 
 # ==========================================
 # 7. SẢN PHẨM & DANH MỤC (Trang chủ doanh nghiệp)
@@ -147,11 +166,12 @@ class SanPham(models.Model):
     danh_muc = models.ForeignKey(DanhMuc, on_delete=models.CASCADE)
     ten_sp = models.CharField(max_length=100)
     gia_tham_khao = models.FloatField()
-    anh_sp = models.CharField(max_length=500)
+    anh_sp = models.ImageField(upload_to='san_pham/', null=True, blank=True)
     mo_ta = models.TextField()
 
     def __str__(self): 
         return self.ten_sp
+    
     
 # ==========================================
 # 8. YÊU CẦU NHẬP HÀNG (Trạm trưởng gửi Admin)
@@ -172,13 +192,42 @@ class YeuCauNhapHang(models.Model):
 
     def __str__(self):
         return f"{self.tram.ten_tram} - Yêu cầu {self.so_luong}L {self.loai_nhien_lieu}"
-    # ==========================================
+
+
+# ==========================================
 # 9. BẢNG GIÁ NHIÊN LIỆU (Giám đốc cập nhật)
 # ==========================================
-class BangGiaNhienLieu(models.Model): # Đã thêm chữ H
+class BangGiaNhienLieu(models.Model):
     loai_nhien_lieu = models.CharField(max_length=10, choices=BonChua.LOAI_XANG, unique=True, verbose_name="Loại Xăng Dầu")
     gia_ban = models.FloatField(verbose_name="Giá bán hiện tại (VNĐ/Lít)")
     ngay_cap_nhat = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.loai_nhien_lieu} - {self.gia_ban:,.0f} đ"
+# ==========================================
+# 10. CẤU HÌNH GIAO DIỆN (Giám đốc tự đổi Banner)
+# ==========================================
+class BannerTrangChu(models.Model):
+    ten_chien_dich = models.CharField(max_length=100, verbose_name="Tên chiến dịch")
+    
+    # Ảnh Banner (Nên up ảnh ngang, kích thước lớn VD: 1920x600)
+    anh_banner = models.ImageField(upload_to='banners/', verbose_name="Ảnh Banner")
+    
+    # Các dòng chữ hiển thị trên Banner
+    tieu_de_chinh = models.CharField(max_length=200, blank=True, verbose_name="Tiêu đề chính (Chữ lớn)")
+    tieu_de_phu = models.CharField(max_length=200, blank=True, verbose_name="Tiêu đề phụ (Chữ nhỏ)")
+    
+    # Trạng thái để biết cái nào được hiện ra Web
+    dang_hien_thi = models.BooleanField(default=False, verbose_name="Đang hiển thị trên trang chủ?")
+    
+    ngay_tao = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.ten_chien_dich
+
+    def save(self, *args, **kwargs):
+        # NÂNG CAO: Đảm bảo chỉ có DUY NHẤT 1 banner được hiển thị
+        if self.dang_hien_thi:
+            # Nếu cái này được chọn hiển thị, thì tìm và tắt hết các cái khác
+            BannerTrangChu.objects.filter(dang_hien_thi=True).update(dang_hien_thi=False)
+        super().save(*args, **kwargs)

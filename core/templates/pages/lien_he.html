@@ -1,87 +1,155 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 text-center mb-5">
-            <h1 class="fw-bold text-primary display-5">LIÊN HỆ VỚI CHÚNG TÔI</h1>
-            <p class="text-muted lead">GSMS luôn sẵn sàng lắng nghe và hỗ trợ bạn 24/7. Hãy gửi lại thông tin để chúng tôi liên lạc lại trong thời gian sớm nhất.</p>
-        </div>
+<div class="bg-light py-5 position-relative overflow-hidden">
+    <div class="position-absolute top-0 start-0 translate-middle bg-primary rounded-circle opacity-10" style="width: 400px; height: 400px; filter: blur(50px);"></div>
+    <div class="position-absolute bottom-0 end-0 translate-middle-y bg-success rounded-circle opacity-10" style="width: 300px; height: 300px; filter: blur(50px);"></div>
+    
+    <div class="container position-relative z-1 text-center">
+        <h6 class="text-primary fw-bold tracking-wider mb-2">HỖ TRỢ KHÁCH HÀNG 24/7</h6>
+        <h1 class="fw-bold display-4 text-dark mb-3">Liên Hệ GSMS Group</h1>
+        <p class="lead text-secondary mx-auto" style="max-width: 600px;">
+            Chúng tôi luôn lắng nghe và sẵn sàng giải quyết mọi vấn đề của bạn. Hãy gửi thông điệp, GSMS sẽ phản hồi trong thời gian sớm nhất!
+        </p>
     </div>
+</div>
 
-    <div class="row">
-        <div class="col-md-5 mb-4 mb-md-0">
-            <div class="card shadow-sm border-0 h-100 bg-dark text-white">
-                <div class="card-body p-5">
-                    <h3 class="fw-bold text-warning mb-4">Thông Tin Tập Đoàn</h3>
+<div class="container py-5" style="margin-top: -30px;">
+    <div class="row g-4 justify-content-center">
+        
+        <div class="col-lg-4 col-md-5">
+            <div class="card shadow-lg border-0 h-100 rounded-4 text-white overflow-hidden contact-card" style="background: linear-gradient(135deg, #0f4c81 0%, #0069d9 100%);">
+                <div class="position-absolute top-0 end-0 translate-middle-y bg-white rounded-circle opacity-10" style="width: 150px; height: 150px;"></div>
+                
+                <div class="card-body p-4 p-xl-5 position-relative z-1">
+                    <h3 class="fw-bold text-warning mb-5">Thông Tin Trụ Sở</h3>
                     
                     <div class="d-flex align-items-start mb-4">
-                        <i class="fas fa-map-marker-alt fa-2x text-primary me-3 mt-1"></i>
+                        <div class="bg-white bg-opacity-25 rounded-circle d-flex justify-content-center align-items-center me-3 flex-shrink-0" style="width: 50px; height: 50px;">
+                            <i class="fas fa-map-marker-alt fa-lg text-white"></i>
+                        </div>
                         <div>
-                            <h5 class="fw-bold mb-1">Trụ sở chính</h5>
-                            <p class="mb-0 text-light opacity-75">Tòa nhà GSMS Tower, Quận 1, TP. Hồ Chí Minh</p>
+                            <h5 class="fw-bold mb-1">Địa chỉ</h5>
+                            <p class="mb-0 text-light opacity-75 small">Tòa nhà GSMS Tower, Quận 1, TP. Hồ Chí Minh</p>
                         </div>
                     </div>
                     
                     <div class="d-flex align-items-start mb-4">
-                        <i class="fas fa-phone-alt fa-2x text-success me-3 mt-1"></i>
+                        <div class="bg-white bg-opacity-25 rounded-circle d-flex justify-content-center align-items-center me-3 flex-shrink-0" style="width: 50px; height: 50px;">
+                            <i class="fas fa-phone-alt fa-lg text-white"></i>
+                        </div>
                         <div>
-                            <h5 class="fw-bold mb-1">Hotline CSKH</h5>
-                            <p class="mb-0 text-light opacity-75">1900 8888 (Phím 1)</p>
+                            <h5 class="fw-bold mb-1">Hotline</h5>
+                            <p class="mb-0 text-light opacity-75 small">1900 8888 (Phím 1)</p>
                         </div>
                     </div>
                     
-                    <div class="d-flex align-items-start">
-                        <i class="fas fa-envelope fa-2x text-info me-3 mt-1"></i>
+                    <div class="d-flex align-items-start mb-5">
+                        <div class="bg-white bg-opacity-25 rounded-circle d-flex justify-content-center align-items-center me-3 flex-shrink-0" style="width: 50px; height: 50px;">
+                            <i class="fas fa-envelope fa-lg text-white"></i>
+                        </div>
                         <div>
-                            <h5 class="fw-bold mb-1">Email Đối Tác</h5>
-                            <p class="mb-0 text-light opacity-75">admin@gsms.com</p>
+                            <h5 class="fw-bold mb-1">Email</h5>
+                            <p class="mb-0 text-light opacity-75 small">admin@gsms.com</p>
                         </div>
                     </div>
+
+                    <hr class="border-light opacity-25 mb-4">
+                    <h6 class="fw-bold mb-2">Giờ làm việc:</h6>
+                    <p class="small text-light opacity-75 mb-0"><i class="far fa-clock me-2"></i>Thứ 2 - Thứ 6: 08:00 - 17:30</p>
+                    <p class="small text-light opacity-75"><i class="far fa-clock me-2"></i>Thứ 7: 08:00 - 12:00</p>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-7">
-            <div class="card shadow border-0 p-4 p-md-5">
-                <h3 class="fw-bold text-dark mb-4">Gửi Thông Điệp Trực Tuyến</h3>
+        <div class="col-lg-8 col-md-7">
+            <div class="card shadow-lg border-0 rounded-4 p-4 p-md-5 h-100 bg-white">
+                <h3 class="fw-bold text-dark mb-1">Gửi Thông Điệp Tới GSMS</h3>
+                <p class="text-muted mb-4">Điền đầy đủ thông tin bên dưới để chúng tôi có thể hỗ trợ bạn tốt nhất.</p>
                 
                 <form method="POST" action="{% url 'lien_he' %}">
                     {% csrf_token %}
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Họ và Tên</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
-                                <input type="text" name="ho_ten" class="form-control" placeholder="Nhập tên của bạn" required>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="ho_ten" class="form-control custom-input" id="floatingName" placeholder="Họ và Tên" required>
+                                <label for="floatingName" class="text-muted"><i class="fas fa-user me-2"></i>Họ và Tên</label>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Email phản hồi</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-envelope text-muted"></i></span>
-                                <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                        
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="email" name="email" class="form-control custom-input" id="floatingEmail" placeholder="name@example.com" required>
+                                <label for="floatingEmail" class="text-muted"><i class="fas fa-envelope me-2"></i>Email phản hồi</label>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Tiêu đề</label>
-                        <input type="text" name="tieu_de" class="form-control" placeholder="Bạn cần hỗ trợ về vấn đề gì?" required>
+                    <div class="form-floating mb-3">
+                        <input type="text" name="tieu_de" class="form-control custom-input" id="floatingSubject" placeholder="Tiêu đề" required>
+                        <label for="floatingSubject" class="text-muted"><i class="fas fa-tag me-2"></i>Chủ đề bạn cần hỗ trợ?</label>
                     </div>
                     
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Nội dung chi tiết</label>
-                        <textarea name="noi_dung" class="form-control" rows="5" placeholder="Mô tả chi tiết yêu cầu của bạn..." required></textarea>
+                    <div class="form-floating mb-4">
+                        <textarea name="noi_dung" class="form-control custom-input" id="floatingTextarea" placeholder="Nội dung" style="height: 150px" required></textarea>
+                        <label for="floatingTextarea" class="text-muted"><i class="fas fa-comment-dots me-2"></i>Chi tiết yêu cầu của bạn...</label>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow">
-                        <i class="fas fa-paper-plane me-2"></i> GỬI THÔNG ĐIỆP
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm btn-hover rounded-pill py-3">
+                        <i class="fas fa-paper-plane me-2"></i> GỬI YÊU CẦU CHO CHÚNG TÔI
                     </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<div class="container-fluid px-0 mt-4">
+    <iframe 
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.467812543022!2d106.69905291480076!3d10.775438892321855!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4738fc99cf%3A0x6a0c0a9690b22f!2sDistrict%201%2C%20Ho%20Chi%20Minh%20City%2C%20Vietnam!5e0!3m2!1sen!2s!4v1650000000000!5m2!1sen!2s" 
+        width="100%" 
+        height="450" 
+        style="border:0; filter: grayscale(20%) contrast(1.2);" 
+        allowfullscreen="" 
+        loading="lazy" 
+        referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+</div>
+
+<style>
+    /* CSS Làm đẹp cho Form và Thẻ */
+    .tracking-wider { letter-spacing: 2px; }
+    
+    /* Tùy chỉnh ô nhập liệu */
+    .custom-input {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
+    .custom-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+        background-color: #ffffff;
+    }
+    
+    /* Hiệu ứng bay bổng khi trỏ chuột vào thẻ bên trái */
+    .contact-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .contact-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 105, 217, 0.3) !important;
+    }
+    
+    /* Hiệu ứng Nút bấm */
+    .btn-hover {
+        transition: all 0.3s ease;
+    }
+    .btn-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4) !important;
+    }
+</style>
 {% endblock %}

@@ -8,18 +8,132 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .navbar { box-shadow: 0 2px 10px rgba(0,0,0,0.1); background: linear-gradient(90deg, #0d6efd, #0a58ca); }
-        .main-content { min-height: 85vh; padding: 20px 0; }
-        .card { border-radius: 12px; border: none; }
-        .alert-floating { position: fixed; top: 20px; right: 20px; z-index: 9999; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slideIn 0.5s ease; }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    /* =======================================================
+       1. HIỆU ỨNG CHO THANH MENU CHÍNH (Trang chủ, Tin tức...)
+       ======================================================= */
+    .navbar-nav .nav-link {
+        transition: all 0.3s ease;
+        border-radius: 8px;      /* Bo tròn các góc */
+        padding: 8px 16px !important;
+        margin: 0 4px;
+        font-weight: 600;        /* Chữ bình thường hơi đậm */
+    }
+    
+    /* Khi rê chuột hoặc đang ở trang đó (Active) của MENU CHÍNH */
+    .navbar-nav .nav-link:hover, 
+    .navbar-nav .nav-link.active {
+        color: #ffffff !important;       /* Chữ chuyển sang TRẮNG */
+        background-color: #0d6efd;       /* Nền chuyển sang XANH PRIMARY */
+        font-weight: 800;                /* In đậm tối đa (Bold) */
+        transform: translateY(-3px);     /* Hiệu ứng nẩy lên */
+        box-shadow: 0 6px 12px rgba(13, 110, 253, 0.3); /* Đổ bóng phát sáng */
+    }
+
+    /* =======================================================
+       2. HIỆU ỨNG CHO MENU XỔ XUỐNG (Dropdown Lĩnh vực)
+       ======================================================= */
+    .dropdown-menu {
+        border-radius: 12px;
+        overflow: hidden; /* Cắt góc mượt cho các mục con */
+        padding: 8px;
+    }
+    .dropdown-item {
+        transition: all 0.2s ease;
+        color: #495057;
+        border-radius: 6px;
+        margin-bottom: 2px;
+    }
+    
+    /* Khi rê chuột hoặc đang ở trang đó (Active) của MENU CON */
+    .dropdown-item:hover, 
+    .dropdown-item.active-menu {
+        color: #ffffff !important;       /* Chữ chuyển sang TRẮNG */
+        background-color: #0d6efd;       /* Nền chuyển sang XANH PRIMARY */
+        font-weight: 700;                /* In đậm (Bold) */
+        padding-left: 20px !important;   /* Thụt đầu dòng vào trong tạo điểm nhấn */
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+    }
+
+    /* =======================================================
+       3. CSS TÙY CHỈNH CHO FOOTER (CHÂN TRANG)
+       ======================================================= */
+    .site-footer {
+        background-color: #111827; /* Màu xanh đen sâu thẳm, sang trọng */
+        color: #9ca3af;
+        padding-top: 70px;
+        font-family: 'Nunito', sans-serif;
+    }
+    .footer-heading {
+        color: #ffffff;
+        font-weight: 800;
+        margin-bottom: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 1.1rem;
+        position: relative;
+    }
+    .footer-heading::after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: #0d6efd; 
+        margin-top: 12px;
+        border-radius: 2px;
+    }
+    .footer-link {
+        color: #9ca3af;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-block;
+        margin-bottom: 12px;
+        font-weight: 500;
+    }
+    .footer-link:hover {
+        color: #ffffff;
+        transform: translateX(5px);
+    }
+    .footer-contact-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+    .footer-contact-item i {
+        color: #0d6efd;
+        font-size: 1.2rem;
+        margin-right: 15px;
+        margin-top: 4px;
+    }
+    .social-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        color: #ffffff;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+        text-decoration: none;
+    }
+    .social-btn:hover {
+        background: #0d6efd;
+        color: #ffffff;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+    }
+    .footer-bottom {
+        background-color: #030712;
+        padding: 20px 0;
+        margin-top: 50px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.9rem;
+    }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-
-    {# --- ĐÂY LÀ BLOCK NAVBAR --- #}
+<body class="d-flex flex-column min-vh-100"> {# --- ĐÂY LÀ BLOCK NAVBAR --- #}
     {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
         <div class="container">
@@ -38,14 +152,22 @@
                     </li>
                     
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'linh_vuc' %}active text-white fw-bold{% else %}text-white-50{% endif %}" href="#" data-bs-toggle="dropdown">Lĩnh vực hoạt động</a>
-                        <ul class="dropdown-menu shadow border-0">
-                            <li><a class="dropdown-item" href="{% url 'linh_vuc' 'xang-dau' %}">Kinh doanh xăng dầu</a></li>
-                            <li><a class="dropdown-item" href="{% url 'linh_vuc' 'van-tai' %}">Vận tải xăng dầu</a></li>
-                            <li><a class="dropdown-item" href="{% url 'linh_vuc' 'gas' %}">Khí hóa lỏng (Gas)</a></li>
-                            <li><a class="dropdown-item" href="{% url 'linh_vuc' 'hoa-dau' %}">Hóa dầu & Dung môi</a></li>
+                        <a class="nav-link dropdown-toggle fw-bold {% if 'linh-vuc' in request.path %}active text-primary{% endif %}" href="#" role="button" data-bs-toggle="dropdown">
+                            Lĩnh vực
+                        </a>
+    
+                        <ul class="dropdown-menu shadow border-0 mt-2">
+                            <li><a class="dropdown-item py-2 {% if 'kinh-doanh-xang-dau' in request.path %}active-menu{% endif %}" href="{% url 'chi_tiet_linh_vuc' 'kinh-doanh-xang-dau' %}">Kinh doanh xăng dầu</a></li>
+        
+                            <li><a class="dropdown-item py-2 {% if 'van-tai-xang-dau' in request.path %}active-menu{% endif %}" href="{% url 'chi_tiet_linh_vuc' 'van-tai-xang-dau' %}">Vận tải xăng dầu</a></li>
+        
+                            <li><a class="dropdown-item py-2 {% if 'khi-hoa-long' in request.path %}active-menu{% endif %}" href="{% url 'chi_tiet_linh_vuc' 'khi-hoa-long' %}">Khí hóa lỏng (LPG)</a></li>
+        
+                            <li><a class="dropdown-item py-2 {% if 'hoa-dau-dung-moi' in request.path %}active-menu{% endif %}" href="{% url 'chi_tiet_linh_vuc' 'hoa-dau-dung-moi' %}">Hóa dầu & Dung môi</a></li>
+        
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'linh_vuc' 'tai-chinh' %}">Dịch vụ tài chính</a></li>
+        
+                            <li><a class="dropdown-item py-2 {% if 'dich-vu-tai-chinh' in request.path %}active-menu{% endif %}" href="{% url 'chi_tiet_linh_vuc' 'dich-vu-tai-chinh' %}">Dịch vụ tài chính</a></li>
                         </ul>
                     </li>
                     
@@ -62,13 +184,19 @@
                 </ul>
                 <div class="d-flex align-items-center">
                     {% if user.is_authenticated %}
-                        <span class="text-white me-3 d-none d-lg-block">Hi, {{ user.username }}</span>
-                        {% if user.role == 'admin' %}
-                            <a href="{% url 'admin_dashboard' %}" class="btn btn-warning btn-sm fw-bold me-2">Admin</a>
-                        {% else %}
-                            <a href="{% url 'staff_pos' %}" class="btn btn-success btn-sm fw-bold me-2">POS</a>
-                        {% endif %}
-                        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Thoát</a>
+                    <span class="text-white me-3 d-none d-lg-block">Hi, {{ user.username }}</span>
+    
+                    {% if user.role == 'admin' or user.is_superuser %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-warning btn-sm fw-bold me-2">
+                    <i class="fas fa-user-shield"></i> Dashboard Admin
+                    </a>
+                    {% else %}
+                    <a href="{% url 'staff_pos' %}" class="btn btn-success btn-sm fw-bold me-2">
+                    <i class="fas fa-cash-register"></i> Máy POS
+                    </a>
+                    {% endif %}
+    
+                     <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Thoát</a>
                     {% else %}
                         <a href="{% url 'login' %}" class="btn btn-light text-primary btn-sm fw-bold shadow-sm">
                             <i class="fas fa-user-lock"></i> Đăng nhập nội bộ
@@ -81,8 +209,7 @@
     {% endblock %}
     {# --- HẾT BLOCK NAVBAR --- #}
 
-    <div class="main-content">
-        {% if messages %}
+    <div class="main-content flex-grow-1"> {% if messages %}
             <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-lg border-0" role="alert">
@@ -98,8 +225,76 @@
         {% endblock %}
     </div>
 
-    <footer class="bg-black text-center py-3 mt-auto border-top">
-        <small class="text-white">&copy; {% now "Y" %} GSMS Project - Hệ thống quản lý xăng dầu thông minh.</small>
+    <footer class="site-footer mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-5 mb-lg-0 pe-lg-4">
+                    <a href="{% url 'trang_chu' %}" class="text-decoration-none d-inline-block mb-4">
+                        <h2 class="fw-bold text-white mb-0">
+                            <i class="fas fa-gas-pump text-primary me-2"></i> GSMS GROUP
+                        </h2>
+                    </a>
+                    <p class="mb-4 lh-lg">
+                        Tự hào là đơn vị tiên phong trong lĩnh vực quản lý và phân phối nhiên liệu sạch tại Việt Nam. Chúng tôi cam kết mang đến giải pháp năng lượng tối ưu, an toàn và bền vững cho mọi doanh nghiệp.
+                    </p>
+                    <div class="d-flex">
+                        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-5 mb-lg-0">
+                    <h5 class="footer-heading">Lĩnh Vực Trọng Tâm</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><a href="{% url 'chi_tiet_linh_vuc' 'kinh-doanh-xang-dau' %}" class="footer-link"><i class="fas fa-angle-right me-2 fs-7"></i> Kinh doanh xăng dầu</a></li>
+                        <li><a href="{% url 'chi_tiet_linh_vuc' 'van-tai-xang-dau' %}" class="footer-link"><i class="fas fa-angle-right me-2 fs-7"></i> Vận tải nhiên liệu</a></li>
+                        <li><a href="{% url 'chi_tiet_linh_vuc' 'khi-hoa-long' %}" class="footer-link"><i class="fas fa-angle-right me-2 fs-7"></i> Khí hóa lỏng (LPG)</a></li>
+                        <li><a href="{% url 'chi_tiet_linh_vuc' 'hoa-dau-dung-moi' %}" class="footer-link"><i class="fas fa-angle-right me-2 fs-7"></i> Hóa dầu & Dung môi</a></li>
+                        <li><a href="{% url 'chi_tiet_linh_vuc' 'dich-vu-tai-chinh' %}" class="footer-link"><i class="fas fa-angle-right me-2 fs-7"></i> Dịch vụ tài chính</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-5 mb-md-0">
+                    <h5 class="footer-heading">Liên Kết Nhanh</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><a href="{% url 'trang_chu' %}" class="footer-link">Trang chủ</a></li>
+                        <li><a href="{% url 'gioi_thieu' %}" class="footer-link">Về chúng tôi</a></li>
+                        <li><a href="{% url 'san_pham' %}" class="footer-link">Sản phẩm</a></li>
+                        <li><a href="{% url 'tin_tuc' %}" class="footer-link">Tin tức hoạt động</a></li>
+                        <li><a href="{% url 'lien_he' %}" class="footer-link">Liên hệ</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="footer-heading">Trụ Sở Chính</h5>
+                    <div class="footer-contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Tòa nhà GSMS Tower, Khu Công Nghệ Cao, TP. Dĩ An, Bình Dương</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <span><strong>Hotline:</strong> 1900 8888 <br><small>(Hỗ trợ 24/7)</small></span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <span><strong>Email:</strong> contact@gsms.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom text-center">
+            <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <p class="mb-2 mb-md-0 text-secondary">
+                    &copy; {% now "Y" %} <strong>GSMS Group</strong>. Bản quyền đã được bảo hộ.
+                </p>
+                <div>
+                    <a href="#" class="text-secondary text-decoration-none small me-3">Chính sách bảo mật</a>
+                    <a href="#" class="text-secondary text-decoration-none small">Điều khoản sử dụng</a>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

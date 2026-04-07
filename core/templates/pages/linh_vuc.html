@@ -1,35 +1,134 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="container-fluid p-0 mb-5">
-    <div style="background: url('{{ img }}') no-repeat center center; background-size: cover; height: 400px; position: relative;">
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); padding: 20px; color: white; text-align: center;">
-            <h1 class="display-4 fw-bold">{{ title }}</h1>
+<style>
+    /* CSS Tùy chỉnh cho trang Chi tiết lĩnh vực */
+    .tracking-wider { letter-spacing: 2px; }
+    .hero-banner {
+        height: 450px;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed; /* Hiệu ứng Parallax khi cuộn chuột */
+        position: relative;
+    }
+    .hero-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 100%);
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 60px; height: 4px;
+        background-color: #0d6efd;
+        border-radius: 2px;
+    }
+    .btn-hover { transition: transform 0.3s, box-shadow 0.3s; }
+    .btn-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(13, 110, 253, 0.3) !important;
+    }
+    .content-body p { line-height: 1.8; font-size: 1.05rem; }
+</style>
+
+<div class="hero-banner w-100" style="background-image: url('{{ img }}');">
+    <div class="hero-overlay"></div>
+    <div class="container h-100 position-relative z-1 d-flex align-items-end pb-5">
+        <div class="text-white w-100">
+            <span class="badge bg-primary px-3 py-2 rounded-pill mb-3 shadow-sm tracking-wider">LĨNH VỰC HOẠT ĐỘNG</span>
+            
+            <h1 class="display-4 fw-bold mb-3">{{ title }}</h1>
+            
+            <p class="lead opacity-75 mb-0" style="max-width: 700px;">Cung cấp giải pháp năng lượng tối ưu, an toàn và bền vững, góp phần thúc đẩy sự phát triển của doanh nghiệp và cộng đồng.</p>
         </div>
     </div>
 </div>
-<div class="container py-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}">Trang chủ</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
-        </ol>
-    </nav>
+
+<div class="bg-light border-bottom mb-5">
+    <div class="container py-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 fw-bold">
+                <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}" class="text-decoration-none text-muted"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Lĩnh vực</a></li>
+                
+                <li class="breadcrumb-item active text-primary" aria-current="page">{{ title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container pb-5 mb-4">
     <div class="row">
-        <div class="col-md-8">
-            <h3 class="text-primary border-bottom pb-2">Chi tiết lĩnh vực</h3>
-            <p class="lead mt-4">{{ content }}</p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam...</p>
+        
+        <div class="col-lg-8 pe-lg-5 mb-5 mb-lg-0">
+            <h3 class="fw-bold text-dark mb-4 position-relative pb-3 section-title">Tổng Quan Dịch Vụ</h3>
+            
+            <p class="lead text-primary fw-bold mb-4" style="line-height: 1.8;">
+                {{ content }}
+            </p>
+            
+            <div class="content-body text-secondary">
+                <p>Với hệ thống vận hành đạt chuẩn quốc tế, GSMS Group tự hào mang đến quy trình quản lý khép kín từ tổng kho đến từng vòi bơm. Chúng tôi ứng dụng triệt để công nghệ 4.0 vào đo lường, giám sát và điều phối, đảm bảo tính minh bạch và an toàn tuyệt đối trong mọi giao dịch.</p>
+                
+                <div class="bg-light p-4 rounded-4 border-start border-primary border-5 my-5 shadow-sm">
+                    <h5 class="fw-bold text-dark mb-3"><i class="fas fa-check-circle text-success me-2"></i> Cam Kết Chất Lượng Dịch Vụ</h5>
+                    
+                    <ul class="list-unstyled mb-0">
+                        {% for muc in cam_ket %}
+                        <li class="mb-3 d-flex align-items-start">
+                            <i class="fas fa-star text-warning mt-1 me-3"></i>
+                            <span>{{ muc }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    </div>
+                
+                <p>Sự hài lòng của khách hàng chính là thước đo thành công lớn nhất của chúng tôi. GSMS không ngừng cải tiến công nghệ và đào tạo đội ngũ nhân sự để mang lại những giá trị vượt trội nhất.</p>
+            </div>
         </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">Liên hệ hợp tác</div>
-                <div class="card-body">
-                    <p><strong>Hotline:</strong> 1900 1000</p>
-                    <p><strong>Email:</strong> kinhdoanh@gsms.vn</p>
-                    <button class="btn btn-outline-primary w-100">Gửi yêu cầu báo giá</button>
+
+        <div class="col-lg-4">
+            <div class="position-sticky" style="top: 100px;">
+                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                    
+                    <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #0f4c81 0%, #0069d9 100%);">
+                        <i class="fas fa-handshake fa-3x mb-3 opacity-75"></i>
+                        <h4 class="fw-bold mb-0">Hợp Tác Kinh Doanh</h4>
+                    </div>
+                    
+                    <div class="card-body p-4 p-xl-5 bg-white">
+                        <p class="text-muted mb-4 text-center">Để lại thông tin, chuyên viên GSMS sẽ liên hệ tư vấn giải pháp phù hợp nhất cho doanh nghiệp của bạn.</p>
+                        
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-3 text-primary shadow-sm" style="width: 50px; height: 50px;">
+                                <i class="fas fa-phone-alt fa-lg"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block fw-bold">Hotline Hỗ Trợ</small>
+                                <strong class="fs-4 text-dark">1900 8888</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-5">
+                            <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-3 text-success shadow-sm" style="width: 50px; height: 50px;">
+                                <i class="fas fa-envelope fa-lg"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block fw-bold">Email Phụ Trách</small>
+                                <strong class="fs-6 text-dark">kinhdoanh@gsms.com</strong>
+                            </div>
+                        </div>
+
+                        <a href="{% url 'lien_he' %}" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-pill btn-hover py-3">
+                            <i class="fas fa-paper-plane me-2"></i> Gửi Yêu Cầu Tư Vấn
+                        </a>
+                    </div>
+                    
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 {% endblock %}

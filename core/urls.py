@@ -13,7 +13,6 @@ urlpatterns = [
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('import/', views.admin_import, name='admin_import'),
     
-    # --- SỬA LỖI TẠI ĐÂY: Đặt tên name='tao_du_lieu_mau' cho khớp với nút bấm HTML ---
     path('tao-data/', views.tao_du_lieu_mau, name='tao_du_lieu_mau'),
 
     # 4. Khu vực Nhân viên (POS)
@@ -22,16 +21,22 @@ urlpatterns = [
     path('chot-ca/', views.staff_chot_ca, name='staff_chot_ca'),
     # Trang chủ
     path('gioi-thieu/', views.trang_gioi_thieu, name='gioi_thieu'),
-    path('linh-vuc/<str:slug>/', views.trang_linh_vuc, name='linh_vuc'), # 1 trang dùng chung cho 5 lĩnh vực
+    path('linh-vuc/<slug:slug>/', views.chi_tiet_linh_vuc, name='chi_tiet_linh_vuc'),
     path('tin-tuc/', views.trang_tin_tuc, name='tin_tuc'),
     path('san-pham/', views.trang_san_pham, name='san_pham'),
     path('admin-portal/them-tram/', views.admin_add_station, name='admin_add_station'),
     path('pos/bao-cao-tram/', views.bao_cao_tram, name='bao_cao_tram'),
-    path('tao-yeu-cau-nhap/', views.tao_yeu_cau_nhap, name='tao_yeu_cau_nhap'),
     path('duyet-yeu-cau/<int:req_id>/', views.duyet_yeu_cau, name='duyet_yeu_cau'),
     path('export-excel/', views.xuat_excel_doanh_thu, name='xuat_excel_doanh_thu'),
     path('lien-he/', views.trang_lien_he, name='lien_he'),
     path('quan-ly/nhan-su/', views.quan_ly_nhan_su, name='quan_ly_nhan_su'),
     path('quan-ly/nhan-su/thao-tac/', views.thao_tac_nhan_su, name='thao_tac_nhan_su'),
     path('quan-ly/gia-ban/', views.quan_ly_gia, name='quan_ly_gia'),
+    path('quan-ly/them-kho/', views.admin_add_ncc, name='admin_add_ncc'),
+    path('nhan-vien/xin-cap-xang/', views.tao_yeu_cau_nhap_hang, name='tao_yeu_cau_nhap_hang'),
+    path('quan-ly/duyet-yeu-cau/<int:yc_id>/', views.duyet_yeu_cau, name='duyet_yeu_cau'),
+    path('quan-ly/tin-tuc/', views.admin_tin_tuc, name='admin_tin_tuc'),
+    path('quan-ly/tin-tuc/them/', views.admin_tin_tuc_form, name='admin_them_tin_tuc'),
+    path('quan-ly/tin-tuc/sua/<int:tin_id>/', views.admin_tin_tuc_form, name='admin_sua_tin_tuc'),
+    path('quan-ly/tin-tuc/xoa/<int:tin_id>/', views.admin_xoa_tin_tuc, name='admin_xoa_tin_tuc'),
 ]

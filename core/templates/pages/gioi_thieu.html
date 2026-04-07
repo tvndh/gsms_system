@@ -1,18 +1,148 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="container py-5">
-    <div class="row align-items-center">
-        <div class="col-md-6">
-            <h1 class="fw-bold text-primary mb-4">VỀ CHÚNG TÔI - GSMS GROUP</h1>
-            <p class="lead">Hơn 30 năm hình thành và phát triển, GSMS tự hào là đơn vị tiên phong trong lĩnh vực năng lượng sạch.</p>
-            <p>Chúng tôi cam kết mang đến nguồn nhiên liệu chất lượng cao, bảo vệ động cơ và thân thiện với môi trường. Hệ thống quản lý áp dụng công nghệ 4.0 giúp minh bạch hóa mọi giao dịch.</p>
-            <div class="row mt-4">
-                <div class="col-6 mb-3"><h3 class="fw-bold">500+</h3><small>Trạm xăng toàn quốc</small></div>
-                <div class="col-6 mb-3"><h3 class="fw-bold">1M+</h3><small>Khách hàng tin dùng</small></div>
+<style>
+    /* CSS Tùy chỉnh cho trang Giới thiệu */
+    .text-gradient {
+        background: linear-gradient(90deg, #0d6efd, #0dcaf0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .bg-pattern {
+        /* Tạo background hoa văn chấm bi mờ */
+        background-image: url('data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%230d6efd" fill-opacity="0.03" fill-rule="evenodd"%3E%3Ccircle cx="3" cy="3" r="3"/%3E%3Ccircle cx="13" cy="13" r="3"/%3E%3C/g%3E%3C/svg%3E');
+    }
+    .icon-box {
+        width: 70px;
+        height: 70px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    .tracking-wider { letter-spacing: 2px; }
+</style>
+
+<div class="bg-pattern py-5 overflow-hidden">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="badge bg-primary px-3 py-2 rounded-pill mb-3 shadow-sm tracking-wider">VỀ CHÚNG TÔI</span>
+                <h1 class="fw-bold display-5 mb-4 text-dark">GSMS GROUP<br><span class="text-gradient">Tiên Phong Năng Lượng</span></h1>
+                <p class="lead text-secondary mb-4" style="line-height: 1.8;">
+                    Hơn 30 năm hình thành và phát triển, GSMS tự hào là đơn vị dẫn đầu trong lĩnh vực cung ứng nhiên liệu sạch và giải pháp năng lượng số hóa 4.0 tại Việt Nam.
+                </p>
+                <p class="text-muted mb-5">
+                    Chúng tôi cam kết mang đến nguồn nhiên liệu chất lượng cao, bảo vệ động cơ và thân thiện với môi trường. Hệ thống quản lý áp dụng công nghệ tự động hóa giúp minh bạch hóa mọi giao dịch đến từng giọt xăng.
+                </p>
+                
+                <div class="d-flex gap-3">
+                    <a href="#" class="btn btn-primary btn-lg fw-bold px-4 shadow rounded-pill">Trải nghiệm dịch vụ</a>
+                    <a href="#core-values" class="btn btn-outline-secondary btn-lg fw-bold px-4 rounded-pill">Tìm hiểu thêm</a>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="position-relative">
+                    <div class="position-absolute top-50 start-50 translate-middle bg-primary rounded-circle opacity-25" style="width: 100%; height: 100%; filter: blur(60px); z-index: 0;"></div>
+                    
+                    <img src="https://petrolimex.com.vn/public/userfiles/images/2021/T6/18062021_KV2_CH42_01.jpg" class="img-fluid rounded-4 shadow-lg position-relative z-1" alt="Trạm xăng GSMS" style="border: 8px solid white;">
+                    
+                    <div class="position-absolute bottom-0 start-0 bg-white p-3 rounded-4 shadow-lg z-2" style="transform: translate(-15%, 25%); min-width: 220px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success text-white rounded-circle d-flex justify-content-center align-items-center shadow-sm" style="width: 55px; height: 55px;">
+                                <i class="fas fa-leaf fa-xl"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Nhiên liệu Sạch</h6>
+                                <small class="text-muted">Tiêu chuẩn EURO 5</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <img src="https://petrolimex.com.vn/public/userfiles/images/2021/T6/18062021_KV2_CH42_01.jpg" class="img-fluid rounded shadow-lg">
+    </div>
+</div>
+
+<div class="bg-primary text-white py-5 shadow-sm">
+    <div class="container">
+        <div class="row text-center g-4">
+            <div class="col-6 col-md-3 border-end border-light border-opacity-25">
+                <h2 class="display-4 fw-bold mb-0">30+</h2>
+                <p class="text-white-50 mb-0 fw-bold tracking-wider small">Năm Kinh Nghiệm</p>
+            </div>
+            <div class="col-6 col-md-3 border-end border-light border-opacity-25">
+                <h2 class="display-4 fw-bold mb-0">500+</h2>
+                <p class="text-white-50 mb-0 fw-bold tracking-wider small">Trạm Phân Phối</p>
+            </div>
+            <div class="col-6 col-md-3 border-end border-light border-opacity-25">
+                <h2 class="display-4 fw-bold mb-0">63/63</h2>
+                <p class="text-white-50 mb-0 fw-bold tracking-wider small">Tỉnh Thành</p>
+            </div>
+            <div class="col-6 col-md-3">
+                <h2 class="display-4 fw-bold mb-0">2M+</h2>
+                <p class="text-white-50 mb-0 fw-bold tracking-wider small">Khách Hàng/Ngày</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="core-values" class="container py-5 mt-5">
+    <div class="text-center mb-5">
+        <h6 class="text-primary fw-bold tracking-wider">TÔN CHỈ HOẠT ĐỘNG</h6>
+        <h2 class="fw-bold display-6 text-dark">Giá Trị Cốt Lõi</h2>
+        <div class="mx-auto bg-primary mt-3" style="width: 80px; height: 5px; border-radius: 5px;"></div>
+    </div>
+
+    <div class="row g-4 pb-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-lift p-4 text-center rounded-4 bg-white">
+                <div class="card-body">
+                    <div class="icon-box bg-primary bg-opacity-10 text-primary mb-4 mx-auto shadow-sm">
+                        <i class="fas fa-microchip fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 text-dark">Công Nghệ 4.0</h4>
+                    <p class="text-muted mb-0" style="line-height: 1.7;">
+                        Tiên phong áp dụng hệ thống quản trị logistics bằng GIS và POS Cloud hiện đại, tối ưu hóa chuỗi cung ứng xăng dầu toàn quốc.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-lift p-4 text-center rounded-4 bg-white">
+                <div class="card-body">
+                    <div class="icon-box bg-success bg-opacity-10 text-success mb-4 mx-auto shadow-sm">
+                        <i class="fas fa-shield-alt fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 text-dark">Chất Lượng Vàng</h4>
+                    <p class="text-muted mb-0" style="line-height: 1.7;">
+                        Mỗi lít xăng đều trải qua quy trình kiểm định kép từ tổng kho đến trạm bơm, đảm bảo công suất tối đa và bảo vệ động cơ.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm hover-lift p-4 text-center rounded-4 bg-white">
+                <div class="card-body">
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning mb-4 mx-auto shadow-sm">
+                        <i class="fas fa-globe-asia fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3 text-dark">Phát Triển Bền Vững</h4>
+                    <p class="text-muted mb-0" style="line-height: 1.7;">
+                        Đẩy mạnh phân phối nhiên liệu sinh học E5 và các trạm sạc điện EV, hướng tới mục tiêu Net Zero và một tương lai xanh.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>

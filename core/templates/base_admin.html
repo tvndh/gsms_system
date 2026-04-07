@@ -61,27 +61,33 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_import' %}active{% endif %}" href="{% url 'admin_import' %}">
-                            <i class="fas fa-truck-moving text-warning"></i> Nhập Hàng
+                            <i class="fas fa-truck-moving text-warning"></i> Quản lý Nhập Hàng
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_add_station' %}active{% endif %}" href="{% url 'admin_add_station' %}">
-                            <i class="fas fa-plus-circle text-info"></i> Thêm Trạm
+                            <i class="fas fa-gas-pump text-info"></i> Quản lý Trạm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_add_ncc' %}active{% endif %}" href="{% url 'admin_add_ncc' %}">
+                            <i class="fas fa-industry text-danger"></i> Quản lý Kho
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'quan_ly_nhan_su' %}active{% endif %}" href="{% url 'quan_ly_nhan_su' %}">
-                            <i class="fas fa-users-cog text-light"></i> Nhân Sự
+                            <i class="fas fa-users-cog text-light"></i> Quản lý Nhân sự
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'quan_ly_gia' %}active{% endif %}" href="{% url 'quan_ly_gia' %}">
-                            <i class="fas fa-tags text-danger"></i> Cập Nhật Giá
+                            <i class="fas fa-tags text-success"></i> Quản lý Giá
                         </a>
                     </li>
+                    
                     <li class="nav-item">
-                        <a class="nav-link admin-nav-link" href="{% url 'staff_pos' %}">
-                            <i class="fas fa-cash-register text-success"></i> Máy POS
+                        <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_tin_tuc' or request.resolver_match.url_name == 'admin_them_tin_tuc' or request.resolver_match.url_name == 'admin_sua_tin_tuc' %}active{% endif %}" href="{% url 'admin_tin_tuc' %}">
+                            <i class="fas fa-newspaper text-white"></i> Quản lý Tin Tức
                         </a>
                     </li>
                     <li class="nav-item ms-lg-2 ps-lg-2 border-start border-light border-opacity-25 d-none d-lg-block">
@@ -113,6 +119,7 @@
         {% endfor %}
     </div>
     {% endif %}
+
     {% block content %}{% endblock %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

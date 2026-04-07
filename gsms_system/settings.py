@@ -3,7 +3,7 @@ Django settings for gsms_system project.
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'core', # App của bạn
 ]
 
@@ -115,13 +116,15 @@ LANGUAGE_CODE = 'vi'        # Chuyển sang Tiếng Việt
 TIME_ZONE = 'Asia/Ho_Chi_Minh' # Chuyển sang giờ Việt Nam (GMT+7)
 
 USE_I18N = True
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # --- CẤU HÌNH TÙY CHỈNH CHO DỰ ÁN ---
 
@@ -148,3 +151,10 @@ EMAIL_HOST_USER = '390a3a82b26538'
 EMAIL_HOST_PASSWORD = '79b67f907907d0'
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'noreply@gsms.com' # Email gửi mặc định
+
+STATIC_URL = '/static/'
+
+# THÊM ĐOẠN NÀY VÀO: Chỉ cho Django biết thư mục static của bạn nằm ở đâu
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]

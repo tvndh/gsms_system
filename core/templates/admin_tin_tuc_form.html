@@ -1,0 +1,60 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-dark text-white p-4">
+                    <h4 class="mb-0 fw-bold">
+                        <i class="fas fa-edit text-warning me-2"></i> 
+                        {% if tin %}CHỈNH SỬA BÀI VIẾT{% else %}VIẾT BÀI TIN TỨC MỚI{% endif %}
+                    </h4>
+                </div>
+                
+                <div class="card-body p-4 bg-light">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="fw-bold text-secondary mb-2">Tiêu đề bài viết <span class="text-danger">*</span></label>
+                            <input type="text" name="tieu_de" value="{{ tin.tieu_de|default:'' }}" class="form-control form-control-lg border-2 fw-bold text-primary" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold text-secondary mb-2">Ảnh bìa (Thumbnail)</label>
+                            {% if tin.anh_bia %}
+                                <div class="mb-2">
+                                    <img src="{{ tin.anh_bia.url }}" class="img-thumbnail shadow-sm" style="max-height: 150px;">
+                                </div>
+                                <small class="text-muted d-block mb-2">Chỉ chọn file mới nếu bạn muốn thay đổi ảnh hiện tại.</small>
+                            {% endif %}
+                            <input type="file" name="anh_bia" class="form-control border-2" accept="image/*" {% if not tin %}required{% endif %}>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold text-secondary mb-2">Tóm tắt (Sapo) <span class="text-danger">*</span></label>
+                            <textarea name="tom_tat" class="form-control border-2" rows="3" required>{{ tin.tom_tat|default:'' }}</textarea>
+                            <small class="text-muted">Đoạn text ngắn hiển thị bên ngoài trang chủ.</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold text-secondary mb-2">Nội dung chi tiết <span class="text-danger">*</span></label>
+                            <textarea name="noi_dung" class="form-control border-2" rows="10" required>{{ tin.noi_dung|default:'' }}</textarea>
+                        </div>
+
+                        <hr class="my-4">
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'admin_tin_tuc' %}" class="btn btn-outline-secondary fw-bold px-4">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-success btn-lg fw-bold px-5 shadow">
+                                <i class="fas fa-save me-2"></i> XUẤT BẢN
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

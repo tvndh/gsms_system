@@ -1,7 +1,6 @@
 {% extends 'base_admin.html' %}
 {% load static %}
-
-{# --- PHẦN 1: GHI ĐÈ MENU KHÁCH BẰNG MENU ADMIN (Màu Đen) --- #}
+{% load humanize %} {# --- PHẦN 1: GHI ĐÈ MENU KHÁCH BẰNG MENU ADMIN (Màu Đen) --- #}
 
 
 {# --- PHẦN 2: NỘI DUNG DASHBOARD CHÍNH --- #}
@@ -13,39 +12,55 @@
     </div>
 
     <div class="row mb-4">
-        <div class="col-md-4 mb-3">
+        <div class="col-xl-3 col-md-6 mb-3">
             <div class="card text-white bg-success shadow h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-uppercase mb-1 opacity-75">Doanh Thu Ngày</h6>
-                            <h3 class="fw-bold mb-0">{{ doanh_thu_hom_nay|floatformat:0 }} <small>VNĐ</small></h3>
+                            <h4 class="fw-bold mb-0">{{ doanh_thu_hom_nay|floatformat:0|intcomma }} <small>đ</small></h4>
                         </div>
                         <i class="fas fa-coins fa-3x opacity-50"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card text-white bg-danger shadow h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1 opacity-75">Lợi Nhuận (Ước tính)</h6>
+                            <h4 class="fw-bold mb-0">{{ loi_nhuan_hom_nay|floatformat:0|intcomma }} <small>đ</small></h4>
+                        </div>
+                        <i class="fas fa-hand-holding-usd fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
             <div class="card text-white bg-primary shadow h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-uppercase mb-1 opacity-75">Sản Lượng Bán</h6>
-                            <h3 class="fw-bold mb-0">{{ san_luong_hom_nay|floatformat:2 }} <small>Lít</small></h3>
+                            <h4 class="fw-bold mb-0">{{ san_luong_hom_nay|floatformat:1|intcomma }} <small>Lít</small></h4>
                         </div>
                         <i class="fas fa-gas-pump fa-3x opacity-50"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
+        
+        <div class="col-xl-3 col-md-6 mb-3">
             <div class="card text-white bg-warning shadow h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-uppercase text-dark mb-1 opacity-75">Tổng Giao Dịch</h6>
-                            <h3 class="fw-bold text-dark mb-0">{{ so_giao_dich }}</h3>
+                            <h4 class="fw-bold text-dark mb-0">{{ so_giao_dich|intcomma }}</h4>
                         </div>
                         <i class="fas fa-file-invoice fa-3x text-dark opacity-50"></i>
                     </div>
@@ -56,7 +71,7 @@
 
     <div class="card shadow mb-4 border-0">
         <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-store-alt text-warning"></i> CHI TIẾT DOANH THU THEO TRẠM</h5>
+            <h5 class="mb-0 fw-bold"><i class="fas fa-store-alt text-warning"></i> CHI TIẾT DOANH THU & LỢI NHUẬN TỪNG TRẠM</h5>
             
             <div class="d-flex align-items-center">
                 <form method="GET" class="d-flex me-3">
@@ -68,7 +83,6 @@
                         {% endif %}
                     </div>
                 </form>
-                
                 <a href="{% url 'xuat_excel_doanh_thu' %}?q={{ tu_khoa }}" class="btn btn-success btn-sm fw-bold shadow-sm">
                     <i class="fas fa-file-excel"></i> XUẤT EXCEL
                 </a>
@@ -83,7 +97,7 @@
                             <th width="5%">STT</th>
                             <th>Trạm Xăng</th>
                             <th>Doanh Thu (VNĐ)</th>
-                            <th>Sản Lượng Bán (Lít)</th>
+                            <th>Lợi Nhuận (VNĐ)</th> <th>Sản Lượng (Lít)</th>
                             <th>Số Đơn Hàng</th>
                         </tr>
                     </thead>
@@ -95,13 +109,16 @@
                                 <strong class="text-primary">{{ row.tram.ten_tram }}</strong>
                                 <br><small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ row.tram.dia_chi }}</small>
                             </td>
-                            <td class="text-end fw-bold text-success fs-5 align-middle">{{ row.doanh_thu|floatformat:0 }} đ</td>
-                            <td class="text-end fw-bold text-dark align-middle">{{ row.san_luong|floatformat:1 }} Lít</td>
+                            <td class="text-end fw-bold text-success fs-5 align-middle">{{ row.doanh_thu|floatformat:0|intcomma }} đ</td>
+                            
+                            <td class="text-end fw-bold text-danger fs-5 align-middle">+{{ row.loi_nhuan|floatformat:0|intcomma }} đ</td>
+                            
+                            <td class="text-end fw-bold text-dark align-middle">{{ row.san_luong|floatformat:1|intcomma }} Lít</td>
                             <td class="text-center align-middle"><span class="badge bg-secondary">{{ row.so_don }} đơn</span></td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center text-danger py-4 fw-bold">
+                            <td colspan="6" class="text-center text-danger py-4 fw-bold">
                                 <i class="fas fa-search fa-2x mb-2 opacity-50"></i><br>
                                 Không tìm thấy trạm xăng nào khớp với từ khóa "{{ tu_khoa }}"!
                             </td>
@@ -112,6 +129,7 @@
             </div>
         </div>
     </div>
+    
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow-sm border-0">
@@ -176,7 +194,6 @@
         </div>
         
         <div class="card-body bg-light p-4">
-            {# --- LỆNH GOM NHÓM: Sắp xếp và gom các bồn chứa có cùng tên Trạm Xăng vào 1 nhóm --- #}
             {% regroup ds_bon|dictsort:"tram.ten_tram" by tram.ten_tram as grouped_tanks %}
 
             <div class="accordion" id="accordionTanks">
@@ -193,7 +210,6 @@
                     <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#accordionTanks">
                         <div class="accordion-body bg-light border-top">
                             <div class="row">
-                                {# --- VÒNG LẶP HIỂN THỊ CÁC BỒN CHỨA (GIAO DIỆN MỚI) --- #}
                                 {% for bon in nhom.list %}
                                 <div class="col-md-4 mb-4">
                                     <div class="card h-100 border-0 shadow-sm" style="background: #f8f9fa; border-radius: 12px; border-bottom: 5px solid {% if bon.phan_tram < 20 %}#dc3545{% elif bon.phan_tram < 50 %}#ffc107{% else %}#198754{% endif %} !important;">
@@ -251,144 +267,75 @@
     </div>
 </div>
 {% endblock %}
-{# --- PHẦN 3: JAVASCRIPT CHO BIỂU ĐỒ --- #}
+
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    // Đảm bảo toàn bộ web load xong mới chạy code vẽ biểu đồ
     document.addEventListener("DOMContentLoaded", function() {
-        
-        // 1. KIỂM TRA LỖI MẠNG (Xem Chart.js đã tải được chưa)
         if (typeof Chart === 'undefined') {
             console.error("Lỗi: Không tải được thư viện Chart.js");
-            document.getElementById('lineChart').parentElement.innerHTML = "<div class='alert alert-danger mt-4 text-center'><i class='fas fa-wifi'></i> Lỗi mạng: Không thể tải thư viện vẽ biểu đồ.</div>";
             return;
         }
 
-        // 2. KHAI BÁO BIẾN
-        let lineChartInstance = null;
-        let barChartInstance = null;
-        let hzBarChartInstance = null;
-
-        // 3. PARSE DỮ LIỆU TỪ PYTHON SANG (Ép kiểu an toàn 100%)
+        let lineChartInstance = null; let barChartInstance = null; let hzBarChartInstance = null;
         let rawData = null;
         try {
-            // escapejs giúp loại bỏ các ký tự lạ làm hỏng code JS
             const rawDataString = '{{ chart_data_json|escapejs }}';
-            
-            if (!rawDataString || rawDataString === "undefined") {
-                throw new Error("Không nhận được dữ liệu từ Backend!");
-            }
-            
-            // Chuyển chuỗi thành Object JavaScript
             rawData = JSON.parse(rawDataString);
-            console.log("✅ Load dữ liệu biểu đồ thành công!", rawData);
-            
         } catch (error) {
             console.error("❌ LỖI RENDER DỮ LIỆU JSON:", error);
-            document.getElementById('lineChart').parentElement.innerHTML = "<div class='alert alert-warning mt-4 text-center'>Đang chờ dữ liệu giao dịch từ hệ thống...</div>";
-            return; // Dừng code ngay lập tức
+            return;
         }
 
-        // 4. HÀM TÍNH TỶ LỆ XĂNG BÁN RA DỰA TRÊN SỐ LÍT THỰC TẾ
         function generateTopFuels(totalVolumeArray) {
             const totalLiters = totalVolumeArray.reduce((a, b) => a + b, 0);
             return {
                 labels: ['Xăng RON 95-III', 'Xăng E5 RON 92', 'Dầu DO 0.05S'],
-                // Phân bổ ảo (vì Hóa đơn chưa lưu chi tiết bồn nào ra bồn nào): 45% A95, 25% E5, 30% DO
                 data: [totalLiters * 0.45, totalLiters * 0.25, totalLiters * 0.30]
             };
         }
 
-        // 5. HÀM VẼ BIỂU ĐỒ (Được gắn vào window để HTML gọi được)
         window.updateCharts = function(filterType) {
             const data = rawData[filterType];
-            
-            if(!data) return; // Nếu chọn sai bộ lọc thì bỏ qua
+            if(!data) return; 
             
             const topFuels = generateTopFuels(data.volume);
 
-            // Hủy biểu đồ cũ trước khi vẽ mới để không bị đè hình
             if (lineChartInstance) lineChartInstance.destroy();
             if (barChartInstance) barChartInstance.destroy();
             if (hzBarChartInstance) hzBarChartInstance.destroy();
 
-            // Cài đặt font chữ và màu cơ bản
             Chart.defaults.font.family = "'Nunito', sans-serif";
             Chart.defaults.color = '#5a5c69';
 
-            // --- BIỂU ĐỒ 1: ĐƯỜNG (LINE CHART) ---
             const ctxLine = document.getElementById('lineChart');
             if(ctxLine) {
                 lineChartInstance = new Chart(ctxLine.getContext('2d'), {
                     type: 'line',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Doanh thu (Triệu VNĐ)',
-                            data: data.revenue,
-                            borderColor: '#4e73df',
-                            backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                            pointBackgroundColor: '#4e73df',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: '#4e73df',
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            fill: true,
-                            tension: 0.4 // Bo cong đường
-                        }]
-                    },
+                    data: { labels: data.labels, datasets: [{ label: 'Doanh thu (Triệu VNĐ)', data: data.revenue, borderColor: '#4e73df', backgroundColor: 'rgba(78, 115, 223, 0.1)', pointBackgroundColor: '#4e73df', pointBorderColor: '#fff', pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#4e73df', pointRadius: 5, pointHoverRadius: 7, fill: true, tension: 0.4 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
                 });
             }
 
-            // --- BIỂU ĐỒ 2: CỘT DỌC (BAR CHART) ---
             const ctxBar = document.getElementById('barChart');
             if(ctxBar) {
                 barChartInstance = new Chart(ctxBar.getContext('2d'), {
                     type: 'bar',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: 'Sản lượng (Lít)',
-                            data: data.volume,
-                            backgroundColor: '#1cc88a',
-                            hoverBackgroundColor: '#17a673',
-                            borderRadius: 5 
-                        }]
-                    },
+                    data: { labels: data.labels, datasets: [{ label: 'Sản lượng (Lít)', data: data.volume, backgroundColor: '#1cc88a', hoverBackgroundColor: '#17a673', borderRadius: 5 }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
                 });
             }
 
-            // --- BIỂU ĐỒ 3: CỘT NGANG (HORIZONTAL BAR) ---
             const ctxHzBar = document.getElementById('hzBarChart');
             if(ctxHzBar) {
                 hzBarChartInstance = new Chart(ctxHzBar.getContext('2d'), {
                     type: 'bar',
-                    data: {
-                        labels: topFuels.labels,
-                        datasets: [{
-                            label: 'Lít đã bán',
-                            data: topFuels.data,
-                            backgroundColor: ['#e74a3b', '#f6c23e', '#36b9cc'],
-                            borderRadius: 5
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y', // QUAN TRỌNG: Quay ngang biểu đồ
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { x: { beginAtZero: true } }
-                    }
+                    data: { labels: topFuels.labels, datasets: [{ label: 'Lít đã bán', data: topFuels.data, backgroundColor: ['#e74a3b', '#f6c23e', '#36b9cc'], borderRadius: 5 }] },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
                 });
             }
         };
 
-        // 6. KHỞI CHẠY LẦN ĐẦU KHI VỪA VÀO TRANG (Lấy Quý làm mặc định)
         window.updateCharts('quarter');
     });
 </script>
