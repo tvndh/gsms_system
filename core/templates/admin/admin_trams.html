@@ -1,0 +1,85 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-5">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="text-primary fw-bold mb-1"><i class="fas fa-gas-pump"></i> QUẢN LÝ TRẠM XĂNG</h2>
+            <p class="text-muted mb-0">Thiết lập mạng lưới phân phối và tọa độ điểm bán</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary fw-bold shadow-sm d-flex align-items-center">
+                <i class="fas fa-arrow-left me-2"></i> Bảng Điều Khiển
+            </a>
+            <a href="{% url 'admin_them_tram' %}" class="btn btn-success fw-bold shadow-sm d-flex align-items-center">
+                <i class="fas fa-plus-circle me-2"></i> Thêm Trạm Mới
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-5 rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white border-0 py-3">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-warning"></i> Danh sách Trạm đang hoạt động</h5>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light text-center align-middle" style="border-bottom: 2px solid #dee2e6;">
+                        <tr>
+                            <th width="5%" class="py-3">STT</th>
+                            <th width="25%">Tên Trạm</th>
+                            <th width="35%">Địa Chỉ</th>
+                            <th width="20%">Tọa độ (Lat, Lng)</th>
+                            <th width="15%">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center align-middle">
+                        {% for t in ds_tram %}
+                        <tr>
+                            <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                            <td class="fw-bold text-primary text-start ps-3">
+                                <i class="fas fa-store-alt text-secondary me-1"></i> {{ t.ten_tram }}
+                            </td>
+                            <td class="text-start pe-3">{{ t.dia_chi }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark border font-monospace shadow-sm">
+                                    {{ t.latitude|floatformat:4 }}, {{ t.longitude|floatformat:4 }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{% url 'admin_sua_tram' t.id %}" class="btn btn-sm btn-outline-primary shadow-sm px-3">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <a href="{% url 'admin_xoa_tram' t.id %}" class="btn btn-sm btn-outline-danger shadow-sm px-3" onclick="return confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa trạm {{ t.ten_tram }}?\n\nHành động này sẽ XÓA TOÀN BỘ BỒN CHỨA thuộc trạm này. Không thể hoàn tác!');">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-muted py-5 text-center">
+                                <i class="fas fa-store-slash mb-3 fa-3x d-block text-secondary opacity-50"></i>
+                                <h5 class="fw-bold">Chưa có Trạm Xăng nào</h5>
+                                <p class="small">Bấm vào nút "Thêm Trạm Mới" ở góc trên bên phải để bắt đầu thiết lập hệ thống.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Làm đẹp hiệu ứng trỏ chuột vào dòng của bảng */
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+        transition: background-color 0.2s ease;
+    }
+</style>
+{% endblock %}

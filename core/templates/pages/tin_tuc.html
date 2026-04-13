@@ -1,20 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <style>
     /* CSS Nâng Cấp Cho Trang Tin Tức */
-    .hero-news {
-        background: linear-gradient(135deg, #0f4c81 0%, #198754 100%);
-        position: relative;
-        overflow: hidden;
-        padding: 4rem 0;
-    }
-    .hero-news::after {
-        content: '';
-        position: absolute;
-        top: 0; right: 0; bottom: 0; left: 0;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    }
     .news-card {
         border: none;
         border-radius: 16px;
@@ -86,17 +75,31 @@
     .text-hover-primary:hover { color: #0d6efd !important; }
 </style>
 
-<div class="hero-news text-white text-center shadow-sm">
-    <div class="container position-relative z-1">
-        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-3 fw-bold tracking-wider shadow-sm">TIN TỨC GSMS</span>
-        <h1 class="display-4 fw-bold mb-3">Tin Tức & Sự Kiện</h1>
-        <p class="lead opacity-75 mx-auto" style="max-width: 600px;">
+<div class="container-fluid p-0 position-relative shadow-sm overflow-hidden" style="height: 350px;">
+    <img src="{% static 'images/banner_chinh.jpg' %}" class="w-100 h-100 position-absolute top-0 start-0" style="object-fit: cover; z-index: 1;" alt="GSMS Banner">
+    
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(15, 76, 129, 0.85); z-index: 2;"></div>
+    
+    <div class="container h-100 position-relative z-3 d-flex flex-column justify-content-center align-items-center text-center">
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-3 fw-bold tracking-wider shadow-sm">BẢN TIN GSMS</span>
+        
+        <h1 class="display-4 fw-bold text-white text-uppercase mb-3" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.3); letter-spacing: 2px;">
+            TIN TỨC & SỰ KIỆN 
+        </h1>
+        
+        <p class="lead text-white opacity-75 mx-auto mb-4" style="max-width: 600px;">
             Cập nhật nhanh nhất các thông tin về thị trường năng lượng, hoạt động doanh nghiệp và các chương trình khuyến mãi.
         </p>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center mb-0" style="font-size: 1.05rem;">
+                <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}" class="text-white-50 text-decoration-none hover-text-white"><i class="fas fa-home me-1"></i> Trang chủ</a></li>
+                <li class="breadcrumb-item active text-white fw-bold" aria-current="page">Tin tức</li>
+            </ol>
+        </nav>
     </div>
 </div>
-
-<div class="container py-5 mt-3">
+<div class="container py-4">
     
     <div class="row mb-5 justify-content-center">
         <div class="col-md-8 col-lg-6">
@@ -126,7 +129,7 @@
                         {% if tin.anh_bia %}
                             <img src="{{ tin.anh_bia.url }}" class="w-100" style="height: 240px; object-fit: cover;" alt="{{ tin.tieu_de }}">
                         {% else %}
-                            <img src="[https://via.placeholder.com/400x240/e9ecef/6c757d?text=GSMS+News](https://via.placeholder.com/400x240/e9ecef/6c757d?text=GSMS+News)" class="w-100" style="height: 240px; object-fit: cover;" alt="No image">
+                            <img src="https://via.placeholder.com/400x240/e9ecef/6c757d?text=GSMS+News" class="w-100" style="height: 240px; object-fit: cover;" alt="No image">
                         {% endif %}
                     </a>
                     

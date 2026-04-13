@@ -1,0 +1,170 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold"><i class="fas fa-gas-pump"></i> QUẢN LÝ TRẠM XĂNG</h2>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary fw-bold">
+            <i class="fas fa-arrow-left"></i> Về Bảng Điều Khiển
+        </a>
+    </div>
+
+    <div class="card shadow border-0 mb-5">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list"></i> Danh sách Trạm đang hoạt động</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover table-bordered mb-0">
+                <thead class="table-light text-center align-middle">
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên Trạm</th>
+                        <th>Địa Chỉ</th>
+                        <th>Tọa độ (Lat, Lng)</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center align-middle">
+                    {% for tram in ds_tram %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                        <td class="fw-bold text-primary">{{ tram.ten_tram }}</td>
+                        <td class="text-start">{{ tram.dia_chi }}</td>
+                        <td class="small text-muted">{{ tram.latitude }}, {{ tram.longitude }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary shadow-sm"><i class="fas fa-edit"></i> Sửa</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-muted py-4">Chưa có Trạm Xăng nào trong hệ thống.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h4 class="text-dark fw-bold mb-3 border-bottom pb-2"><i class="fas fa-plus-circle text-success"></i> Thêm Trạm Xăng Mới</h4>
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow border-0 border-top border-primary border-4 h-100">
+                <div class="card-body bg-light">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">Tên Trạm Xăng <span class="text-danger">*</span></label>
+                            <input type="text" name="ten_tram" class="form-control fw-bold border-primary" placeholder="VD: Trạm Xăng Petrolimex 01" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted"><i class="fas fa-database"></i> Bố trí bồn chứa ban đầu <span class="text-danger">*</span></label>
+                            <div class="p-3 bg-white border rounded shadow-sm">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" name="nhien_lieu" value="A95" id="chkA95" checked>
+                                    <label class="form-check-label fw-bold text-warning" for="chkA95">Xăng A95 (Bồn 15.000L)</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" name="nhien_lieu" value="E5" id="chkE5" checked>
+                                    <label class="form-check-label fw-bold text-success" for="chkE5">Xăng E5 (Bồn 10.000L)</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" name="nhien_lieu" value="DO" id="chkDO" checked>
+                                    <label class="form-check-label fw-bold text-secondary" for="chkDO">Dầu DO (Bồn 20.000L)</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="nhien_lieu" value="E10" id="chkE10">
+                                    <label class="form-check-label fw-bold text-info" for="chkE10">Xăng E10 (Bồn 10.000L)</label>
+                                </div>
+                            </div>
+                            <small class="text-success fst-italic mt-1 d-block"><i class="fas fa-check-circle"></i> Hệ thống sẽ tự động tạo TK Trưởng trạm & Nhân viên khi lưu!</small>
+                        </div>
+
+                        <hr>
+                        <p class="text-info fw-bold small"><i class="fas fa-mouse-pointer"></i> Click vào bản đồ bên phải để lấy Tọa độ!</p>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted">Địa chỉ <span class="text-danger">*</span></label>
+                            <textarea name="dia_chi" id="dia_chi" class="form-control bg-white" rows="2" placeholder="Click bản đồ để lấy địa chỉ..." required></textarea>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-muted small">Vĩ độ (Lat)</label>
+                                <input type="text" name="latitude" id="lat" class="form-control bg-white text-primary fw-bold" readonly required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold text-muted small">Kinh độ (Lng)</label>
+                                <input type="text" name="longitude" id="lng" class="form-control bg-white text-primary fw-bold" readonly required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow">
+                            <i class="fas fa-save"></i> LƯU TRẠM MỚI
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow h-100 border-0">
+                <div class="card-body p-0">
+                    <div id="map" style="height: 650px; width: 100%; border-radius: 8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Lấy tọa độ trung tâm TP.HCM làm mặc định
+    var map = L.map('map').setView([10.7760, 106.7011], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+
+    // Icon Trạm Xăng
+    var stationIcon = L.icon({ 
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', 
+        iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40] 
+    });
+
+    var marker = null;
+
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+
+        // Điền tọa độ
+        document.getElementById('lat').value = lat.toFixed(6);
+        document.getElementById('lng').value = lng.toFixed(6);
+
+        // Đặt marker
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng, {icon: stationIcon}).addTo(map);
+        }
+        marker.bindPopup("<strong class='text-primary'>Vị trí Trạm Xăng</strong>").openPopup();
+
+        // Tự động tìm địa chỉ (Reverse Geocoding)
+        document.getElementById('dia_chi').value = "Đang tìm địa chỉ..."; 
+        var url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    document.getElementById('dia_chi').value = data.display_name.replace(', Vietnam', '').replace(', Việt Nam', '');
+                } else {
+                    document.getElementById('dia_chi').value = "Không tìm thấy địa chỉ cụ thể. Vui lòng nhập tay.";
+                }
+            })
+            .catch(err => { document.getElementById('dia_chi').value = ""; });
+    });
+</script>
+{% endblock %}

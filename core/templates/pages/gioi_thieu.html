@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <style>
@@ -30,11 +31,29 @@
     .tracking-wider { letter-spacing: 2px; }
 </style>
 
+<div class="container-fluid p-0 position-relative mb-5 shadow-sm overflow-hidden" style="height: 350px;">
+    <img src="{% static 'images/banners/banner_chinh.jpg' %}" class="w-100 h-100 position-absolute top-0 start-0" style="object-fit: cover; z-index: 1;" alt="Giới thiệu GSMS">
+    
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(15, 76, 129, 0.8); z-index: 2;"></div>
+    
+    <div class="container h-100 position-relative z-3 d-flex flex-column justify-content-center text-center">
+        <h1 class="display-4 fw-bold text-white text-uppercase tracking-wider mb-3" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.3);">
+            Về Chúng Tôi
+        </h1>
+        
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center mb-0" style="font-size: 1.1rem;">
+                <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}" class="text-white-50 text-decoration-none hover-text-white"><i class="fas fa-home me-1"></i> Trang chủ</a></li>
+                <li class="breadcrumb-item active text-white fw-bold" aria-current="page">Giới thiệu</li>
+            </ol>
+        </nav>
+    </div>
+</div>
 <div class="bg-pattern py-5 overflow-hidden">
-    <div class="container py-5">
+    <div class="container py-2">
         <div class="row align-items-center g-5">
             <div class="col-lg-6">
-                <span class="badge bg-primary px-3 py-2 rounded-pill mb-3 shadow-sm tracking-wider">VỀ CHÚNG TÔI</span>
+                <span class="badge bg-primary px-3 py-2 rounded-pill mb-3 shadow-sm tracking-wider">CÂU CHUYỆN THƯƠNG HIỆU</span>
                 <h1 class="fw-bold display-5 mb-4 text-dark">GSMS GROUP<br><span class="text-gradient">Tiên Phong Năng Lượng</span></h1>
                 <p class="lead text-secondary mb-4" style="line-height: 1.8;">
                     Hơn 30 năm hình thành và phát triển, GSMS tự hào là đơn vị dẫn đầu trong lĩnh vực cung ứng nhiên liệu sạch và giải pháp năng lượng số hóa 4.0 tại Việt Nam.
@@ -44,7 +63,7 @@
                 </p>
                 
                 <div class="d-flex gap-3">
-                    <a href="#" class="btn btn-primary btn-lg fw-bold px-4 shadow rounded-pill">Trải nghiệm dịch vụ</a>
+                    <a href="{% url 'san_pham' %}" class="btn btn-primary btn-lg fw-bold px-4 shadow rounded-pill">Trải nghiệm dịch vụ</a>
                     <a href="#core-values" class="btn btn-outline-secondary btn-lg fw-bold px-4 rounded-pill">Tìm hiểu thêm</a>
                 </div>
             </div>
@@ -72,7 +91,7 @@
     </div>
 </div>
 
-<div class="bg-primary text-white py-5 shadow-sm">
+<div class="bg-primary text-white py-5 shadow-sm mt-5">
     <div class="container">
         <div class="row text-center g-4">
             <div class="col-6 col-md-3 border-end border-light border-opacity-25">

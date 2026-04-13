@@ -1,0 +1,108 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-5">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="text-primary fw-bold mb-1"><i class="fas fa-users"></i> QUẢN LÝ NHÂN SỰ</h2>
+            <p class="text-muted mb-0">Quản lý tài khoản, phân quyền và điều chuyển công tác</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary fw-bold shadow-sm d-flex align-items-center">
+                <i class="fas fa-arrow-left me-2"></i> Bảng Điều Khiển
+            </a>
+            <a href="{% url 'admin_them_nhan_su' %}" class="btn btn-success fw-bold shadow-sm d-flex align-items-center">
+                <i class="fas fa-user-plus me-2"></i> Thêm Nhân Sự Mới
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-5 rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white border-0 py-3">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-id-card-alt me-2 text-warning"></i> Danh sách Tài khoản Nội bộ</h5>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0 text-nowrap">
+                    <thead class="table-light text-center align-middle" style="border-bottom: 2px solid #dee2e6;">
+                        <tr>
+                            <th width="5%" class="py-3">STT</th>
+                            <th>Tài Khoản</th>
+                            <th>Họ và Tên</th>
+                            <th>Số Điện Thoại</th>
+                            <th>Vai Trò</th>
+                            <th>Nơi Làm Việc</th>
+                            <th>Trạng Thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center align-middle">
+                        {% for nv in ds_nhan_su %}
+                        <tr>
+                            <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                            <td class="fw-bold text-primary">{{ nv.username }}</td>
+                            <td class="text-start fw-bold">{{ nv.full_name }}</td>
+                            <td>{{ nv.phone|default:"<span class='text-muted'>-</span>"|safe }}</td>
+                            <td>
+                                {% if nv.role == 'truong_tram' %}
+                                    <span class="badge bg-danger rounded-pill px-3 shadow-sm">Cửa Hàng Trưởng</span>
+                                {% elif nv.role == 'nv_ban_xang' %}
+                                    <span class="badge bg-info text-dark rounded-pill px-3 shadow-sm">Nhân viên Bơm xăng</span>
+                                {% elif nv.role == 'nv_ban_hang' %}
+                                    <span class="badge bg-primary rounded-pill px-3 shadow-sm">Thu ngân Mart</span>
+                                {% elif nv.role == 'ke_toan' %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 shadow-sm">Kế toán Nội bộ</span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill px-3 shadow-sm">{{ nv.get_role_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold text-success">
+                                {% if nv.role == 'ke_toan' %}
+                                    <i class="fas fa-building text-secondary me-1"></i> Tòa nhà Hội Sở (Tổng)
+                                {% else %}
+                                    <i class="fas fa-store-alt text-secondary me-1"></i> {{ nv.tram_xang.ten_tram|default:"<span class='text-danger fst-italic'>Chưa phân trạm</span>"|safe }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if nv.is_active %}
+                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Đang làm</span>
+                                {% else %}
+                                    <span class="badge bg-secondary"><i class="fas fa-lock"></i> Đã khóa</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="{% url 'admin_sua_nhan_su' nv.id %}" class="btn btn-sm btn-outline-primary shadow-sm px-3">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <a href="{% url 'admin_xoa_nhan_su' nv.id %}" class="btn btn-sm btn-outline-danger shadow-sm px-3" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên: {{ nv.full_name }}?');">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-muted py-5 fs-5 text-center">
+                                <i class="fas fa-users-slash mb-3 fs-1 d-block text-secondary opacity-50"></i>
+                                <h5 class="fw-bold">Chưa có nhân sự nào trong hệ thống</h5>
+                                <p class="small text-muted">Bấm "Thêm Nhân Sự Mới" để bắt đầu cấp tài khoản (Không bao gồm tài khoản Admin của bạn).</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+        transition: background-color 0.2s ease;
+    }
+</style>
+{% endblock %}

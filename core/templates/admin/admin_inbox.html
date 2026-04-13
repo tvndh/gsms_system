@@ -1,0 +1,283 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-dark fw-bold mb-1"><i class="fas fa-inbox text-primary me-2"></i> Hộp Thư Điều Hành</h2>
+            <p class="text-muted mb-0">Quản lý phản hồi khách hàng và cơ hội hợp tác doanh nghiệp</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4 bg-white p-2 rounded shadow-sm border" id="inboxTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold px-4" id="btn-b2b" data-bs-toggle="pill" data-bs-target="#tab-b2b" type="button">
+                <i class="fas fa-handshake me-1"></i> Đối Tác B2B
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4" id="btn-ung-vien" data-bs-toggle="pill" data-bs-target="#tab-ung-vien" type="button">
+                <i class="fas fa-users me-1"></i> Tuyển Dụng
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4" id="btn-gop-y" data-bs-toggle="pill" data-bs-target="#tab-gop-y" type="button">
+                <i class="fas fa-comments me-1"></i> Liên Hệ / Góp Ý
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4" id="btn-danh-gia" data-bs-toggle="pill" data-bs-target="#tab-danh-gia" type="button">
+                <i class="fas fa-star text-warning me-1"></i> Duyệt Đánh Giá
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="inboxTabsContent">
+        
+        <div class="tab-pane fade show active" id="tab-b2b">
+            <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="ps-3">Thời gian</th><th>Khách hàng / Công ty</th><th>Nhu cầu</th><th>Liên hệ</th><th>Trạng thái</th><th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in ds_b2b %}
+                                <tr>
+                                    <td class="ps-3 small">{{ item.ngay_gui|date:"d/m/Y H:i" }}</td>
+                                    <td class="fw-bold text-primary">{{ item.ten_cong_ty }}</td>
+                                    <td><span class="text-truncate d-inline-block" style="max-width: 200px;">{{ item.nhu_cau }}</span></td>
+                                    <td>
+                                        <i class="fas fa-phone-alt small text-muted me-1"></i>{{ item.so_dien_thoai }} 
+                                        {% if item.email %}<br><i class="fas fa-envelope small text-muted me-1"></i><small>{{ item.email }}</small>{% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if item.trang_thai == 'moi' %}danger{% elif item.trang_thai == 'thanh_cong' %}success{% else %}warning text-dark{% endif %} shadow-sm">
+                                            {{ item.get_trang_thai_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <form method="POST" class="d-flex align-items-center">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="loai" value="b2b">
+                                            <input type="hidden" name="id" value="{{ item.id }}">
+                                            <select name="hanh_dong" class="form-select form-select-sm me-2" style="width: 130px;">
+                                                <option value="moi" {% if item.trang_thai == 'moi' %}selected{% endif %}>Mới</option>
+                                                <option value="da_lien_he" {% if item.trang_thai == 'da_lien_he' %}selected{% endif %}>Đã liên hệ</option>
+                                                <option value="dang_dam_phan" {% if item.trang_thai == 'dang_dam_phan' %}selected{% endif %}>Đàm phán</option>
+                                                <option value="thanh_cong" {% if item.trang_thai == 'thanh_cong' %}selected{% endif %}>Thành công</option>
+                                                <option value="that_bai" {% if item.trang_thai == 'that_bai' %}selected{% endif %}>Thất bại</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-success px-3 shadow-sm"><i class="fas fa-save"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center py-5 text-muted">Chưa có yêu cầu hợp tác nào.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-ung-vien">
+            <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="ps-3">Ngày nộp</th><th>Ứng viên</th><th>Vị trí</th><th>Hồ sơ</th><th>Trạng thái</th><th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in ds_ung_vien %}
+                                <tr>
+                                    <td class="ps-3">{{ item.ngay_nop|date:"d/m/Y" }}</td>
+                                    <td class="fw-bold">{{ item.ho_ten }} <br> <small class="text-muted"><i class="fas fa-phone me-1"></i>{{ item.so_dien_thoai }}</small></td>
+                                    <td><span class="badge bg-light text-dark border">{{ item.vi_tri_ung_tuyen }}</span></td>
+                                    <td>
+                                        {% if item.file_cv %}
+                                        <a href="{{ item.file_cv.url }}" target="_blank" class="btn btn-sm btn-outline-danger shadow-sm"><i class="fas fa-file-pdf me-1"></i>Mở CV</a>
+                                        {% else %}
+                                        <small class="text-muted fst-italic">Không có file</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if item.trang_thai == 'moi' %}danger{% elif item.trang_thai == 'nhan_viec' %}success{% elif item.trang_thai == 'tu_choi' %}secondary{% else %}info text-dark{% endif %} shadow-sm">
+                                            {{ item.get_trang_thai_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <form method="POST" class="d-flex align-items-center">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="loai" value="ung_vien">
+                                            <input type="hidden" name="id" value="{{ item.id }}">
+                                            <select name="hanh_dong" class="form-select form-select-sm me-2" style="width: 140px;">
+                                                <option value="moi" {% if item.trang_thai == 'moi' %}selected{% endif %}>Mới nộp</option>
+                                                <option value="dang_xem" {% if item.trang_thai == 'dang_xem' %}selected{% endif %}>Đang xem</option>
+                                                <option value="phong_van" {% if item.trang_thai == 'phong_van' %}selected{% endif %}>Hẹn phỏng vấn</option>
+                                                <option value="nhan_viec" {% if item.trang_thai == 'nhan_viec' %}selected{% endif %}>Nhận việc</option>
+                                                <option value="tu_choi" {% if item.trang_thai == 'tu_choi' %}selected{% endif %}>Từ chối</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-save"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center py-5 text-muted">Chưa có hồ sơ ứng viên nào.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-gop-y">
+            <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="ps-3">Thời gian</th><th>Khách hàng</th><th>Nội dung góp ý</th><th>Trạng thái</th><th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in ds_gop_y %}
+                                <tr class="{% if not item.da_xu_ly %}table-warning text-dark{% endif %}">
+                                    <td class="ps-3 small">{{ item.ngay_gui|date:"d/m/Y H:i" }}</td>
+                                    <td class="fw-bold">{{ item.ho_ten }} <br> <small class="text-muted">{{ item.so_dien_thoai }}</small></td>
+                                    <td>
+                                        <strong class="d-block">{{ item.tieu_de }}</strong>
+                                        <p class="mb-0 small text-dark opacity-75">{{ item.noi_dung }}</p>
+                                    </td>
+                                    <td>
+                                        {% if item.da_xu_ly %}
+                                            <span class="badge bg-success shadow-sm"><i class="fas fa-check me-1"></i>Đã xong</span>
+                                        {% else %}
+                                            <span class="badge bg-danger blink-animation shadow-sm">Chờ xử lý</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="loai" value="gop_y">
+                                            <input type="hidden" name="id" value="{{ item.id }}">
+                                            {% if item.da_xu_ly %}
+                                                <button type="submit" name="hanh_dong" value="chua_xong" class="btn btn-sm btn-outline-dark fw-bold"><i class="fas fa-undo me-1"></i>Mở lại</button>
+                                            {% else %}
+                                                <button type="submit" name="hanh_dong" value="xong" class="btn btn-sm btn-success fw-bold shadow-sm"><i class="fas fa-check-circle me-1"></i>Xong</button>
+                                            {% endif %}
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center py-5 text-muted">Chưa có góp ý nào từ khách hàng.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-danh-gia">
+            <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="ps-3">Thời gian</th><th>Khách hàng</th><th>Sản phẩm</th><th>Nội dung & Sao</th><th>Trạng thái</th><th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in ds_danh_gia %}
+                                <tr class="{% if not item.da_duyet %}table-info{% endif %}">
+                                    <td class="ps-3 small">{{ item.ngay_gui|date:"d/m/Y H:i" }}</td>
+                                    <td class="fw-bold">{{ item.ten_khach_hang }}</td>
+                                    <td class="text-primary fw-bold">{{ item.san_pham.ten_sp }}</td>
+                                    <td>
+                                        <div class="text-warning mb-1">
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= item.so_sao %}<i class="fas fa-star"></i>{% else %}<i class="far fa-star"></i>{% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <small class="text-dark">{{ item.noi_dung }}</small>
+                                    </td>
+                                    <td>
+                                        {% if item.da_duyet %}
+                                            <span class="badge bg-success shadow-sm"><i class="fas fa-globe me-1"></i>Công khai</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark blink-animation shadow-sm">Đang ẩn</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="POST" class="d-flex gap-1">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="loai" value="danh_gia">
+                                            <input type="hidden" name="id" value="{{ item.id }}">
+                                            {% if not item.da_duyet %}
+                                                <button type="submit" name="hanh_dong" value="duyet" class="btn btn-sm btn-success shadow-sm" title="Duyệt hiện bài"><i class="fas fa-eye"></i></button>
+                                            {% endif %}
+                                            <button type="submit" name="hanh_dong" value="xoa" class="btn btn-sm btn-danger shadow-sm" onclick="return confirm('Xóa vĩnh viễn bình luận này?');" title="Xóa bỏ"><i class="fas fa-trash-alt"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="6" class="text-center py-5 text-muted">Chưa có đánh giá sản phẩm nào.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    @keyframes blink { 50% { opacity: 0.5; } }
+    .blink-animation { animation: blink 1.5s infinite; }
+    .nav-pills .nav-link.active { background: linear-gradient(90deg, #0f4c81 0%, #0069d9 100%); color: white; box-shadow: 0 4px 10px rgba(0,105,217,0.3); }
+    .nav-pills .nav-link { color: #495057; transition: all 0.3s; }
+    .table-hover tbody tr { transition: all 0.2s; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // --- LOGIC NHỚ TAB KHI RELOAD TRANG ---
+        // 1. Lấy Tab đã lưu trong localStorage (nếu có)
+        var activeTab = localStorage.getItem('activeInboxTab');
+        
+        if (activeTab) {
+            // Tìm nút tab tương ứng và kích hoạt nó
+            var tabTriggerEl = document.querySelector('#inboxTabs button[data-bs-target="' + activeTab + '"]');
+            if (tabTriggerEl) {
+                var tab = new bootstrap.Tab(tabTriggerEl);
+                tab.show();
+            }
+        }
+
+        // 2. Lắng nghe sự kiện click tab để lưu lại vị trí mới
+        var tabEls = document.querySelectorAll('#inboxTabs button[data-bs-toggle="pill"]');
+        tabEls.forEach(function(tabEl) {
+            tabEl.addEventListener('shown.bs.tab', function (event) {
+                var target = event.target.getAttribute('data-bs-target');
+                localStorage.setItem('activeInboxTab', target);
+            });
+        });
+    });
+</script>
+{% endblock %}

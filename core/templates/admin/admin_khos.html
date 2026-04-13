@@ -1,0 +1,63 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold"><i class="fas fa-warehouse"></i> QUẢN LÝ KHO TỔNG / NHÀ CUNG CẤP</h2>
+        <div>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary fw-bold me-2">
+                <i class="fas fa-arrow-left"></i> Về Bảng Điều Khiển
+            </a>
+            <a href="{% url 'admin_them_kho' %}" class="btn btn-success fw-bold shadow-sm">
+                <i class="fas fa-plus-circle"></i> Thêm Kho Mới
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow border-0 mb-5 rounded-4">
+        <div class="card-header bg-dark text-white rounded-top-4">
+            <h5 class="mb-0 fw-bold py-1"><i class="fas fa-list"></i> Danh sách Kho Tổng đang hoạt động</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light text-center align-middle">
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên Kho / Nhà Cung Cấp</th>
+                        <th>Số Điện Thoại</th>
+                        <th>Địa Chỉ</th>
+                        <th>Tọa độ (Lat, Lng)</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center align-middle">
+                    {% for kho in ds_kho %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ forloop.counter }}</td>
+                        <td class="fw-bold text-primary text-start">{{ kho.ten_ncc }}</td>
+                        <td class="fw-bold text-success">{{ kho.sdt }}</td>
+                        <td class="text-start">{{ kho.dia_chi }}</td>
+                        <td class="small text-muted font-monospace">{{ kho.latitude|floatformat:4 }}, {{ kho.longitude|floatformat:4 }}</td>
+                        <td>
+                            <a href="{% url 'admin_sua_kho' kho.id %}" class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-3">
+                                <i class="fas fa-edit"></i> Sửa
+                            </a>
+                            <a href="{% url 'admin_xoa_kho' kho.id %}" class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-3 ms-1" onclick="return confirm('Bạn có chắc chắn muốn xóa Kho: {{ kho.ten_ncc }}?');">
+                                <i class="fas fa-trash"></i> Xóa
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-muted py-5 fs-5">
+                            <i class="fas fa-box-open mb-3 fs-1 d-block text-secondary"></i>
+                            Chưa có Kho / Nhà Cung Cấp nào trong hệ thống.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

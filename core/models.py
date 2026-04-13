@@ -2,16 +2,18 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 # ==========================================
-# 1. NGƯỜI DÙNG (Phân quyền & Cách ly Trạm)
+# 1. NGƯỜI DÙNG (Phân quyền 5 cấp bậc & Cách ly Trạm)
 # ==========================================
 class User(AbstractUser):
-    # Định nghĩa 3 cấp bậc rõ ràng
+    # Định nghĩa 5 cấp bậc rõ ràng theo cơ cấu mới
     ROLES = (
         ('admin', 'Giám đốc / Quản trị viên'),
-        ('tram_truong', 'Cửa hàng trưởng'),
-        ('staff', 'Nhân viên bán hàng'),
+        ('ke_toan', 'Kế toán nội bộ'),
+        ('truong_tram', 'Cửa hàng trưởng / Trưởng trạm'),
+        ('nv_ban_hang', 'Nhân viên bán hàng (Siêu thị)'),
+        ('nv_ban_xang', 'Nhân viên bơm xăng'),
     )
-    role = models.CharField(max_length=20, choices=ROLES, default='staff', verbose_name="Chức vụ")
+    role = models.CharField(max_length=20, choices=ROLES, default='nv_ban_xang', verbose_name="Chức vụ")
     full_name = models.CharField(max_length=100, verbose_name="Họ và tên")
     phone = models.CharField(max_length=15, verbose_name="Số điện thoại")
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
@@ -21,6 +23,7 @@ class User(AbstractUser):
     ca_lam_viec = models.CharField(max_length=50, blank=True, null=True, verbose_name="Ca làm việc")
 
     # Khóa chặt nhân viên vào 1 Trạm Xăng duy nhất
+    # Admin và Kế toán có thể để trống (null) vì họ quản lý tổng
     tram_xang = models.ForeignKey(
         'TramXang', 
         on_delete=models.SET_NULL, 
@@ -154,6 +157,7 @@ class TinTuc(models.Model):
         verbose_name = "Tin Tức"
         verbose_name_plural = "Quản lý Tin Tức"
 
+
 # ==========================================
 # 7. SẢN PHẨM & DANH MỤC (Trang chủ doanh nghiệp)
 # ==========================================
@@ -204,6 +208,8 @@ class BangGiaNhienLieu(models.Model):
 
     def __str__(self):
         return f"{self.loai_nhien_lieu} - {self.gia_ban:,.0f} đ"
+
+
 # ==========================================
 # 10. CẤU HÌNH GIAO DIỆN (Giám đốc tự đổi Banner)
 # ==========================================
@@ -231,6 +237,8 @@ class BannerTrangChu(models.Model):
             # Nếu cái này được chọn hiển thị, thì tìm và tắt hết các cái khác
             BannerTrangChu.objects.filter(dang_hien_thi=True).update(dang_hien_thi=False)
         super().save(*args, **kwargs)
+
+
 # ==========================================
 # 11. HỢP TÁC DOANH NGHIỆP (B2B / Nhượng quyền)
 # ==========================================
@@ -299,6 +307,8 @@ class LienHeGopY(models.Model):
     class Meta:
         verbose_name = "Liên hệ / Góp ý"
         verbose_name_plural = "Quản lý Góp ý Khách hàng"
+
+
 # ==========================================
 # 14. CỬA HÀNG TIỆN LỢI (GSMS Mart)
 # ==========================================
@@ -323,6 +333,8 @@ class SanPhamMart(models.Model):
     class Meta:
         verbose_name = "Sản phẩm Mart"
         verbose_name_plural = "Sản phẩm Mart"
+
+
 # ==========================================
 # 15. ĐÁNH GIÁ SẢN PHẨM (Từ Khách Hàng)
 # ==========================================

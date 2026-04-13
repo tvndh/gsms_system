@@ -1,0 +1,145 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold text-dark m-0">
+                        <i class="fas fa-user-shield text-primary me-2"></i> 
+                        {% if nv %}Cấu Hình Tài Khoản Nhân Sự{% else %}Thêm Nhân Sự Mới{% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Thiết lập quyền hạn và nơi công tác cho nhân viên</p>
+                </div>
+                <a href="{% url 'admin_nhan_sus' %}" class="btn btn-outline-secondary fw-bold rounded-pill shadow-sm">
+                    <i class="fas fa-arrow-left me-2"></i> Quay Lại
+                </a>
+            </div>
+
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <h5 class="fw-bold text-secondary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-key me-2"></i>1. Thông tin đăng nhập
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label class="fw-bold mb-2 text-dark">Tên đăng nhập (Username) <span class="text-danger">*</span></label>
+                                    <input type="text" name="username" class="form-control {% if nv %}bg-light{% endif %}" 
+                                           placeholder="VD: nguyenvan_a" value="{{ nv.username|default:'' }}" 
+                                           {% if nv %}readonly{% else %}required{% endif %}>
+                                    {% if nv %}
+                                        <small class="text-danger fst-italic"><i class="fas fa-lock me-1"></i>Định danh tài khoản không thể thay đổi.</small>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="fw-bold mb-2 text-dark">Mật khẩu {% if not nv %}<span class="text-danger">*</span>{% endif %}</label>
+                                    <input type="password" name="password" class="form-control" 
+                                           placeholder="{% if nv %}Để trống nếu giữ nguyên mật khẩu cũ{% else %}Nhập mật khẩu khởi tạo...{% endif %}" 
+                                           {% if not nv %}required{% endif %}>
+                                </div>
+
+                                {% if nv %}
+                                <div class="p-3 bg-light border rounded-3 mt-4">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="is_active" id="chkActive" {% if nv.is_active %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold {% if nv.is_active %}text-success{% else %}text-danger{% endif %}" for="chkActive">
+                                            Trạng thái: {% if nv.is_active %}Đang hoạt động{% else %}Đang bị khóa{% endif %}
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Nhân viên bị khóa sẽ không thể truy cập vào hệ thống POS hoặc Dashboard.</small>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <h5 class="fw-bold text-secondary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-id-badge me-2"></i>2. Định danh & Phân quyền
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label class="fw-bold mb-2 text-dark">Họ và Tên nhân viên <span class="text-danger">*</span></label>
+                                    <input type="text" name="full_name" class="form-control" placeholder="VD: Nguyễn Văn A" value="{{ nv.full_name|default:'' }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="fw-bold mb-2 text-dark">Số điện thoại liên lạc</label>
+                                    <input type="text" name="phone" class="form-control" placeholder="VD: 0909xxxxxx" value="{{ nv.phone|default:'' }}">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="fw-bold mb-2 text-dark">Vai trò trong hệ thống <span class="text-danger">*</span></label>
+                                    <select name="role" id="role_select" class="form-select border-primary fw-bold" required onchange="toggleTramSelect()">
+                                        <option value="nv_ban_xang" {% if nv.role == 'nv_ban_xang' %}selected{% endif %}>⛽ Nhân viên Bơm xăng</option>
+                                        <option value="nv_ban_hang" {% if nv.role == 'nv_ban_hang' %}selected{% endif %}>🛒 Thu ngân Siêu thị Mart</option>
+                                        <option value="truong_tram" {% if nv.role == 'truong_tram' %}selected{% endif %}>🎖️ Cửa Hàng Trưởng</option>
+                                        <option value="ke_toan" {% if nv.role == 'ke_toan' %}selected{% endif %}>📊 Kế toán Nội bộ (Văn phòng)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3" id="tram_wrapper">
+                                    <label class="fw-bold mb-2 text-dark">Cơ sở làm việc (Trạm Xăng)</label>
+                                    <select name="tram_id" id="tram_select" class="form-select">
+                                        <option value="">-- Chưa phân bổ / Văn phòng tổng --</option>
+                                        {% for t in ds_tram %}
+                                        <option value="{{ t.id }}" {% if nv.tram_xang_id == t.id %}selected{% endif %}>{{ t.ten_tram }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="text-muted" id="tram_note">Nhân viên sẽ chỉ thấy dữ liệu của trạm được chọn.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted">
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                <span class="text-danger">*</span> Trường bắt buộc nhập liệu
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow-lg">
+                                <i class="fas fa-save me-2"></i> {% if nv %}CẬP NHẬT HỒ SƠ{% else %}TẠO TÀI KHOẢN{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Hàm xử lý ẩn hiện chọn Trạm khi chọn vai trò Kế toán
+    function toggleTramSelect() {
+        const role = document.getElementById('role_select').value;
+        const tramWrapper = document.getElementById('tram_wrapper');
+        const tramSelect = document.getElementById('tram_select');
+        const tramNote = document.getElementById('tram_note');
+
+        if (role === 'ke_toan') {
+            // Kế toán làm ở văn phòng tổng, không cần chọn trạm
+            tramSelect.value = "";
+            tramWrapper.style.opacity = "0.5";
+            tramSelect.disabled = true;
+            tramNote.innerText = "Kế toán quản lý dữ liệu toàn hệ thống, không cần chọn trạm lẻ.";
+        } else {
+            tramWrapper.style.opacity = "1";
+            tramSelect.disabled = false;
+            tramNote.innerText = "Nhân viên sẽ chỉ thấy dữ liệu của trạm được chọn.";
+        }
+    }
+
+    // Chạy lệnh kiểm tra ngay khi vừa load trang (trường hợp Sửa nhân viên)
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleTramSelect();
+    });
+</script>
+{% endblock %}

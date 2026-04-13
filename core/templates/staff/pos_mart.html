@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{# --- ẨN NAVBAR MẶC ĐỊNH ĐỂ DÙNG GIAO DIỆN POS TOÀN MÀN HÌNH --- #}
+{% block navbar %}{% endblock %} 
+
+{% block content %}
+<div class="container-fluid vh-100 p-0 bg-light">
+    <div class="row g-0 h-100">
+        
+        {# ========================================== #}
+        {# CỘT 1: SIDEBAR ĐIỀU KHIỂN (TRÁI) #}
+        {# ========================================== #}
+        <div class="col-md-2 bg-dark text-white d-flex flex-column p-3 shadow-lg z-index-2">
+            <div class="text-center mb-4 mt-2">
+                <h4 class="fw-bold text-warning mb-0"><i class="fas fa-store"></i> GSMS MART</h4>
+                <small class="text-muted">Cửa Hàng Tiện Lợi</small>
+            </div>
+
+            <div class="text-center border-bottom border-secondary pb-3 mb-4">
+                <div class="fw-bold fs-5 text-warning">{{ user.full_name|default:user.username }}</div>
+                <span class="badge bg-secondary mb-2">{{ user.get_role_display }}</span>
+                <div class="small text-light"><i class="fas fa-map-marker-alt text-danger"></i> {{ tram.ten_tram|default:"Chưa có trạm" }}</div>
+            </div>
+
+            <div class="d-grid gap-3">
+                <a href="{% url 'pos_mart' %}" class="btn btn-warning text-dark btn-lg text-start fw-bold shadow-sm">
+                    <i class="fas fa-shopping-cart me-2"></i> POS Bán Hàng
+                </a>
+                <a href="{% url 'pos_xang' %}" class="btn btn-outline-light text-start">
+                    <i class="fas fa-gas-pump me-2"></i> POS Bơm Xăng
+                </a>
+                
+                {% if user.role == 'admin' or user.is_superuser %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-primary text-start mt-4">
+                    <i class="fas fa-user-shield me-2"></i> Về Admin
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="mt-auto d-grid">
+                <a href="{% url 'staff_chot_ca' %}" class="btn btn-danger btn-lg fw-bold shadow">
+                    <i class="fas fa-power-off me-2"></i> CHỐT CA VÀ VỀ
+                </a>
+            </div>
+        </div>
+
+        {# ========================================== #}
+        {# CỘT 2: KHU VỰC SẢN PHẨM (GIỮA) #}
+        {# ========================================== #}
+        <div class="col-md-6 p-4 overflow-auto d-flex flex-column bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold text-dark mb-0">DANH MỤC HÀNG HÓA</h4>
+                <div class="input-group" style="width: 250px;">
+                    <input type="text" id="searchInput" class="form-control rounded-start-pill" placeholder="Tìm tên mặt hàng..." onkeyup="timKiemSanPham()">
+                    <button class="btn btn-primary rounded-end-pill"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+
+            <div class="row g-3" id="danhSachSanPham">
+                {% for sp in san_pham_mart %}
+                <div class="col-lg-3 col-md-4 col-sm-6 sp-item">
+                    <div class="card h-100 text-center p-2 border-0 shadow-sm item-card" style="cursor: pointer;" data-name="{{ sp.ten_san_pham|lower }}" onclick="themVaoGio('{{ sp.ten_san_pham }}', {{ sp.gia_ban }}, {{ sp.id }})">
+                        {% if sp.anh_san_pham %}
+                            <img src="{{ sp.anh_san_pham.url }}" style="height: 100px; object-fit: contain;" class="card-img-top p-1">
+                        {% else %}
+                            <div style="height: 100px; line-height: 100px;" class="bg-white text-muted rounded-3"><i class="fas fa-box fa-2x mt-4"></i></div>
+                        {% endif %}
+                        <div class="card-body p-2 mt-2">
+                            <h6 class="fw-bold mb-1" style="font-size: 0.85rem; height: 35px; overflow: hidden;">{{ sp.ten_san_pham }}</h6>
+                            <span class="badge bg-danger fs-6">{{ sp.gia_ban|floatformat:0 }} đ</span>
+                            <div class="small text-muted mt-1">Tồn: {{ sp.ton_kho }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted mt-5">
+                    <i class="fas fa-box-open fa-3x mb-3 opacity-25"></i>
+                    <p>Kho Mart đang trống. Giám đốc chưa nhập hàng hóa nào!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ========================================== #}
+        {# CỘT 3: GIỎ HÀNG (PHẢI) #}
+        {# ========================================== #}
+        <div class="col-md-4 bg-white border-start p-0 shadow-sm d-flex flex-column h-100">
+            <div class="bg-dark text-white p-3 text-center">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i> HÓA ĐƠN MART</h5>
+            </div>
+            
+            <div class="flex-grow-1 overflow-auto p-3 position-relative">
+                <div class="text-center text-muted mt-5" id="gioHangTrong">
+                    <i class="fas fa-shopping-cart fa-3x mb-3 opacity-25"></i>
+                    <p>Chưa có sản phẩm nào</p>
+                </div>
+                <div id="khuVucGioHangItems"></div>
+            </div>
+
+            <div class="bg-light p-4 border-top">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fw-bold text-secondary">Tổng tiền hàng:</span>
+                    <span class="fw-bold fs-5" id="tongTien">0 đ</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+                    <span class="fw-bold text-secondary">Thuế VAT (8%):</span>
+                    <span class="fw-bold fs-5" id="tienVAT">0 đ</span>
+                </div>
+                <div class="d-flex justify-content-between mb-4">
+                    <h4 class="fw-bold text-danger mb-0">THÀNH TIỀN:</h4>
+                    <h2 class="fw-bold text-danger mb-0" id="thanhTien">0 đ</h2>
+                </div>
+                
+                <div class="row g-2">
+                    <div class="col-4">
+                        <button class="btn btn-outline-danger w-100 fw-bold py-3" onclick="xoaToanBo()"><i class="fas fa-trash"></i> XÓA</button>
+                    </div>
+                    <div class="col-8">
+                        <button class="btn btn-success w-100 fw-bold py-3 fs-5 shadow" onclick="thanhToan()"><i class="fas fa-check-circle"></i> THANH TOÁN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    body { overflow: hidden; }
+    .item-card { transition: all 0.2s; border: 2px solid transparent !important; }
+    .item-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; border-color: #ffc107 !important; }
+    .btn-qty { width: 30px; height: 30px; padding: 0; display: inline-flex; justify-content: center; align-items: center; border-radius: 50%; font-weight: bold; }
+</style>
+
+<script>
+    let gioHang = [];
+    const formatTien = (so) => new Intl.NumberFormat('vi-VN').format(so) + ' đ';
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // JS LỌC SẢN PHẨM REAL-TIME
+    function timKiemSanPham() {
+        let input = document.getElementById("searchInput").value.toLowerCase();
+        let items = document.querySelectorAll(".sp-item");
+        
+        items.forEach(function(item) {
+            let card = item.querySelector(".item-card");
+            let name = card.getAttribute("data-name");
+            if (name.includes(input)) {
+                item.style.display = "block";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    }
+
+    function themVaoGio(ten, gia, id) {
+        let item = gioHang.find(i => i.id === id);
+        if (item) { item.soLuong += 1; } 
+        else { gioHang.push({ id: id, ten: ten, gia: gia, soLuong: 1 }); }
+        renderGioHang();
+    }
+
+    function thayDoiSoLuong(index, delta) {
+        gioHang[index].soLuong += delta;
+        if (gioHang[index].soLuong <= 0) { gioHang.splice(index, 1); }
+        renderGioHang();
+    }
+
+    function xoaToanBo() {
+        if(confirm("Xóa toàn bộ giỏ hàng?")) { gioHang = []; renderGioHang(); }
+    }
+
+    function renderGioHang() {
+        let html = '';
+        let tong = 0;
+        
+        if (gioHang.length === 0) {
+            document.getElementById('gioHangTrong').style.display = 'block';
+            document.getElementById('khuVucGioHangItems').innerHTML = '';
+        } else {
+            document.getElementById('gioHangTrong').style.display = 'none';
+            gioHang.forEach((item, index) => {
+                let thanhTien = item.gia * item.soLuong;
+                tong += thanhTien;
+                html += `
+                    <div class="card border-0 shadow-sm mb-2">
+                        <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                            <div style="width: 45%;">
+                                <div class="fw-bold small text-truncate">${item.ten}</div>
+                                <div class="text-danger fw-bold">${formatTien(item.gia)}</div>
+                            </div>
+                            <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1 border">
+                                <button class="btn btn-light btn-qty text-danger" onclick="thayDoiSoLuong(${index}, -1)">-</button>
+                                <span class="mx-2 fw-bold" style="width: 20px; text-align: center;">${item.soLuong}</span>
+                                <button class="btn btn-light btn-qty text-success" onclick="thayDoiSoLuong(${index}, 1)">+</button>
+                            </div>
+                            <div class="fw-bold text-end" style="width: 30%;">${formatTien(thanhTien)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('khuVucGioHangItems').innerHTML = html;
+        }
+        
+        let vat = tong * 0.08;
+        document.getElementById('tongTien').innerText = formatTien(tong);
+        document.getElementById('tienVAT').innerText = formatTien(vat);
+        document.getElementById('thanhTien').innerText = formatTien(tong + vat);
+    }
+
+    function thanhToan() {
+        if (gioHang.length === 0) { alert("Giỏ hàng trống! Vui lòng chọn món."); return; }
+        
+        let btnThanhToan = document.querySelector("button[onclick='thanhToan()']");
+        btnThanhToan.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> ĐANG XỬ LÝ...';
+        btnThanhToan.disabled = true;
+
+        fetch("{% url 'xu_ly_ban_mart' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie('csrftoken')
+            },
+            body: JSON.stringify({ gio_hang: gioHang })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`✅ ${data.message}\nMã Hóa Đơn: ${data.ma_hd}`);
+                gioHang = []; 
+                location.reload(); 
+            } else {
+                alert("❌ Lỗi: " + data.message);
+                btnThanhToan.innerHTML = '<i class="fas fa-check-circle"></i> THANH TOÁN';
+                btnThanhToan.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error("Lỗi Fetch:", error);
+            alert("❌ Lỗi kết nối đến máy chủ!");
+            btnThanhToan.innerHTML = '<i class="fas fa-check-circle"></i> THANH TOÁN';
+            btnThanhToan.disabled = false;
+        });
+    }
+</script>
+{% endblock %}

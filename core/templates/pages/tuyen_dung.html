@@ -4,21 +4,40 @@
 {% block content %}
 <style>
     .job-card { border-left: 5px solid #0d6efd; transition: 0.3s; }
-    .job-card:hover { transform: translateX(10px); background-color: #f8f9fa; }
+    .job-card:hover { transform: translateX(10px); box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; border-color: #ffc107 !important; }
     .benefit-icon { font-size: 2.5rem; color: #198754; margin-bottom: 15px; }
 </style>
 
-<div class="bg-primary text-white py-5 text-center shadow-sm">
-    <div class="container py-4">
-        <h1 class="display-5 fw-bold mb-3">Gia Nhập Đội Ngũ GSMS</h1>
-        <p class="lead opacity-75">Nơi tạo dựng sự nghiệp vững chắc với môi trường làm việc chuyên nghiệp, đãi ngộ dẫn đầu ngành bán lẻ xăng dầu.</p>
+<div class="container-fluid p-0 position-relative mb-5 shadow-sm overflow-hidden" style="height: 350px;">
+    <img src="{% static 'images/banner_chinh.jpg' %}" class="w-100 h-100 position-absolute top-0 start-0" style="object-fit: cover; filter: grayscale(20%); z-index: 1;" alt="Tuyển dụng GSMS">
+    
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(15, 76, 129, 0.85); z-index: 2;"></div>
+    
+    <div class="container h-100 position-relative z-3 d-flex flex-column justify-content-center align-items-center text-center">
+        
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-3 fw-bold tracking-wider shadow-sm">ĐỒNG HÀNH CÙNG GSMS</span>
+        
+        <h1 class="display-4 fw-bold text-white text-uppercase mb-3" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.3); letter-spacing: 2px;">
+            CƠ HỘI NGHỀ NGHIỆP
+        </h1>
+        
+        <p class="lead text-white opacity-75 mx-auto mb-4" style="max-width: 700px;">
+            Nơi tạo dựng sự nghiệp vững chắc với môi trường làm việc chuyên nghiệp và đãi ngộ dẫn đầu ngành bán lẻ xăng dầu.
+        </p>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center mb-0" style="font-size: 1.05rem;">
+                <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}" class="text-white-50 text-decoration-none hover-text-white"><i class="fas fa-home me-1"></i> Trang chủ</a></li>
+                <li class="breadcrumb-item active text-white fw-bold" aria-current="page">Tuyển dụng</li>
+            </ol>
+        </nav>
     </div>
 </div>
-
-<div class="container py-5 mt-4">
-    <div class="text-center mb-5">
-        <h3 class="fw-bold">Tại Sao Chọn Làm Việc Tại GSMS?</h3>
-        <div class="bg-success mx-auto mt-2 mb-4" style="height: 4px; width: 60px; border-radius: 2px;"></div>
+<div class="container py-4 mt-2">
+    <div class="text-center mb-5 pb-3 border-bottom">
+        <h2 class="fw-bold text-primary">Tại Sao Chọn Làm Việc Tại GSMS?</h2>
+        <div class="bg-warning mx-auto mt-2 mb-4" style="height: 4px; width: 60px; border-radius: 2px;"></div>
+        
         <div class="row g-4 mt-3">
             <div class="col-md-3">
                 <i class="fas fa-heartbeat benefit-icon"></i>
@@ -26,84 +45,152 @@
                 <p class="text-muted small">Đóng BHXH 100% lương thực nhận. Gói bảo hiểm sức khỏe PTI cho gia đình.</p>
             </div>
             <div class="col-md-3">
-                <i class="fas fa-hand-holding-usd benefit-icon"></i>
+                <i class="fas fa-hand-holding-usd benefit-icon text-primary"></i>
                 <h5 class="fw-bold">Thu Nhập Hấp Dẫn</h5>
                 <p class="text-muted small">Lương cơ bản cao + Thưởng doanh số hàng tháng + Lương tháng 13, 14.</p>
             </div>
             <div class="col-md-3">
-                <i class="fas fa-graduation-cap benefit-icon"></i>
+                <i class="fas fa-graduation-cap benefit-icon text-warning"></i>
                 <h5 class="fw-bold">Đào Tạo Nội Bộ</h5>
                 <p class="text-muted small">Khóa huấn luyện PCCC, An toàn lao động và kỹ năng mềm miễn phí.</p>
             </div>
             <div class="col-md-3">
-                <i class="fas fa-chart-line benefit-icon"></i>
+                <i class="fas fa-chart-line benefit-icon text-danger"></i>
                 <h5 class="fw-bold">Lộ Trình Thăng Tiến</h5>
                 <p class="text-muted small">Ưu tiên bổ nhiệm Cửa hàng trưởng từ nguồn nhân viên bán hàng nội bộ.</p>
             </div>
         </div>
     </div>
 
-    <hr class="my-5">
-
-    <h3 class="fw-bold mb-4"><i class="fas fa-briefcase text-primary me-2"></i> Vị Trí Đang Tuyển Dụng</h3>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h3 class="fw-bold mb-0 text-dark"><i class="fas fa-briefcase text-primary me-2"></i> Vị Trí Đang Tuyển Dụng</h3>
+        <span class="badge bg-danger rounded-pill px-3 py-2">Đang tuyển 3 vị trí</span>
+    </div>
     
-    <div class="row g-4">
+    <div class="row g-4 mb-5 pb-4">
         <div class="col-12">
-            <div class="card job-card shadow-sm">
+            <div class="card job-card shadow-sm border-0">
                 <div class="card-body p-4 d-flex flex-column flex-md-row align-items-center justify-content-between">
-                    <div>
-                        <h4 class="fw-bold text-dark mb-1">Cửa Hàng Trưởng Trạm Xăng</h4>
-                        <div class="text-muted small mb-2">
-                            <span class="me-3"><i class="fas fa-map-marker-alt text-danger"></i> TP. Hồ Chí Minh, Bình Dương</span>
-                            <span class="me-3"><i class="fas fa-clock text-warning"></i> Toàn thời gian</span>
-                            <span><i class="fas fa-money-bill-wave text-success"></i> 15 - 25 Triệu VNĐ</span>
+                    <div class="w-100">
+                        <h4 class="fw-bold text-dark mb-2">Cửa Hàng Trưởng Trạm Xăng</h4>
+                        <div class="text-muted small mb-3">
+                            <span class="me-3 fw-bold"><i class="fas fa-map-marker-alt text-danger me-1"></i> TP. Hồ Chí Minh, Bình Dương</span>
+                            <span class="me-3 fw-bold"><i class="fas fa-clock text-warning me-1"></i> Toàn thời gian</span>
+                            <span class="fw-bold text-success"><i class="fas fa-money-bill-wave me-1"></i> 15 - 25 Triệu VNĐ</span>
                         </div>
-                        <p class="mb-0 text-secondary">Quản lý doanh thu, xuất nhập tồn kho trạm. Đào tạo và quản lý ca trực cho nhân viên bán hàng. Yêu cầu kinh nghiệm 2 năm quản lý cửa hàng bán lẻ.</p>
+                        <p class="mb-0 text-secondary" style="line-height: 1.6;">Quản lý doanh thu, xuất nhập tồn kho trạm. Đào tạo và quản lý ca trực cho nhân viên bán hàng. Yêu cầu kinh nghiệm 2 năm quản lý cửa hàng bán lẻ.</p>
                     </div>
-                    <div class="mt-3 mt-md-0 ms-md-4">
-                        <button class="btn btn-primary rounded-pill px-4 fw-bold">Ứng Tuyển</button>
+                    <div class="mt-3 mt-md-0 ms-md-5 text-md-end w-100 w-md-auto" style="min-width: 150px;">
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#applyModal" data-job="Cửa Hàng Trưởng Trạm Xăng">
+                            Ứng Tuyển <i class="fas fa-paper-plane ms-1"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-12">
-            <div class="card job-card shadow-sm" style="border-left-color: #198754;">
+            <div class="card job-card shadow-sm border-0" style="border-left-color: #198754;">
                 <div class="card-body p-4 d-flex flex-column flex-md-row align-items-center justify-content-between">
-                    <div>
-                        <h4 class="fw-bold text-dark mb-1">Nhân Viên Bơm Xăng (Hỗ Trợ Chỗ Ở)</h4>
-                        <div class="text-muted small mb-2">
-                            <span class="me-3"><i class="fas fa-map-marker-alt text-danger"></i> Toàn quốc</span>
-                            <span class="me-3"><i class="fas fa-clock text-warning"></i> Xoay ca 8 tiếng</span>
-                            <span><i class="fas fa-money-bill-wave text-success"></i> 8 - 12 Triệu VNĐ</span>
+                    <div class="w-100">
+                        <h4 class="fw-bold text-dark mb-2">Nhân Viên Bơm Xăng <span class="badge bg-danger ms-2 small" style="font-size: 0.7em; vertical-align: middle;">Hỗ Trợ Chỗ Ở</span></h4>
+                        <div class="text-muted small mb-3">
+                            <span class="me-3 fw-bold"><i class="fas fa-map-marker-alt text-danger me-1"></i> Toàn quốc</span>
+                            <span class="me-3 fw-bold"><i class="fas fa-clock text-warning me-1"></i> Xoay ca 8 tiếng</span>
+                            <span class="fw-bold text-success"><i class="fas fa-money-bill-wave me-1"></i> 8 - 12 Triệu VNĐ</span>
                         </div>
-                        <p class="mb-0 text-secondary">Thực hiện thao tác bơm xăng, thu tiền. Vệ sinh khu vực trụ bơm. Không yêu cầu kinh nghiệm, được đào tạo từ A-Z. Có hỗ trợ chỗ ở miễn phí cho nhân viên.</p>
+                        <p class="mb-0 text-secondary" style="line-height: 1.6;">Thực hiện thao tác bơm xăng, thu tiền. Vệ sinh khu vực trụ bơm. Không yêu cầu kinh nghiệm, được đào tạo từ A-Z. Có hỗ trợ chỗ ở miễn phí cho nhân viên xa nhà.</p>
                     </div>
-                    <div class="mt-3 mt-md-0 ms-md-4">
-                        <button class="btn btn-success rounded-pill px-4 fw-bold">Ứng Tuyển</button>
+                    <div class="mt-3 mt-md-0 ms-md-5 text-md-end w-100 w-md-auto" style="min-width: 150px;">
+                        <button type="button" class="btn btn-success text-white rounded-pill px-4 py-2 fw-bold w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#applyModal" data-job="Nhân Viên Bơm Xăng">
+                            Ứng Tuyển <i class="fas fa-paper-plane ms-1"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="col-12">
-            <div class="card job-card shadow-sm" style="border-left-color: #6c757d;">
+            <div class="card job-card shadow-sm border-0" style="border-left-color: #6c757d;">
                 <div class="card-body p-4 d-flex flex-column flex-md-row align-items-center justify-content-between">
-                    <div>
-                        <h4 class="fw-bold text-dark mb-1">Chuyên Viên Kế Toán Nội Bộ</h4>
-                        <div class="text-muted small mb-2">
-                            <span class="me-3"><i class="fas fa-map-marker-alt text-danger"></i> Trụ sở chính Tập đoàn</span>
-                            <span class="me-3"><i class="fas fa-clock text-warning"></i> Giờ hành chính</span>
-                            <span><i class="fas fa-money-bill-wave text-success"></i> 12 - 18 Triệu VNĐ</span>
+                    <div class="w-100">
+                        <h4 class="fw-bold text-dark mb-2">Chuyên Viên Kế Toán Nội Bộ</h4>
+                        <div class="text-muted small mb-3">
+                            <span class="me-3 fw-bold"><i class="fas fa-map-marker-alt text-danger me-1"></i> Trụ sở chính Tập đoàn</span>
+                            <span class="me-3 fw-bold"><i class="fas fa-clock text-warning me-1"></i> Giờ hành chính</span>
+                            <span class="fw-bold text-success"><i class="fas fa-money-bill-wave me-1"></i> 12 - 18 Triệu VNĐ</span>
                         </div>
-                        <p class="mb-0 text-secondary">Đối soát chứng từ hóa đơn các trạm. Xử lý công nợ khách hàng B2B. Yêu cầu tốt nghiệp Đại học chuyên ngành Kế toán/Tài chính, rành Excel & phần mềm ERP.</p>
+                        <p class="mb-0 text-secondary" style="line-height: 1.6;">Đối soát chứng từ hóa đơn các trạm. Xử lý công nợ khách hàng B2B. Yêu cầu tốt nghiệp Đại học chuyên ngành Kế toán/Tài chính, thành thạo Excel & phần mềm quản trị ERP.</p>
                     </div>
-                    <div class="mt-3 mt-md-0 ms-md-4">
-                        <button class="btn btn-secondary rounded-pill px-4 fw-bold">Ứng Tuyển</button>
+                    <div class="mt-3 mt-md-0 ms-md-5 text-md-end w-100 w-md-auto" style="min-width: 150px;">
+                        <button type="button" class="btn btn-secondary text-white rounded-pill px-4 py-2 fw-bold w-100 shadow-sm" data-bs-toggle="modal" data-bs-target="#applyModal" data-job="Chuyên Viên Kế Toán Nội Bộ">
+                            Ứng Tuyển <i class="fas fa-paper-plane ms-1"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-light border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-primary" id="applyModalLabel"><i class="fas fa-user-plus me-2"></i> Nộp Hồ Sơ Ứng Tuyển</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                <form action="{% url 'nop_ho_so' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Vị trí ứng tuyển</label>
+                        <input type="text" class="form-control bg-white fw-bold text-primary border-primary" id="jobTitleInput" name="vi_tri" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Họ và Tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control bg-light border-0 py-2" name="ho_ten" placeholder="Nhập đầy đủ họ tên" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-6 mb-3 mb-sm-0">
+                            <label class="form-label text-muted small fw-bold">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control bg-light border-0 py-2" name="so_dien_thoai" placeholder="Nhập SĐT liên hệ" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label text-muted small fw-bold">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control bg-light border-0 py-2" name="email" placeholder="name@example.com" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">Đính kèm CV (Hồ sơ năng lực) <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control border-secondary" name="file_cv" accept=".pdf,.doc,.docx" required>
+                        <small class="text-muted fst-italic">Chỉ hỗ trợ file .PDF hoặc .DOC, dung lượng tối đa 5MB.</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm">
+                        Gửi Hồ Sơ Ngay
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // JS tự động điền tên vị trí vào Form khi click nút Ứng Tuyển
+    var applyModal = document.getElementById('applyModal')
+    applyModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget
+        var jobTitle = button.getAttribute('data-job')
+        var modalInput = applyModal.querySelector('#jobTitleInput')
+        modalInput.value = jobTitle
+    })
+</script>
 {% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold"><i class="fas fa-newspaper"></i> QUẢN LÝ TIN TỨC</h2>
+        <a href="{% url 'admin_them_tin_tuc' %}" class="btn btn-success fw-bold shadow-sm">
+            <i class="fas fa-plus-circle"></i> Viết bài mới
+        </a>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover table-bordered mb-0 align-middle">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th width="5%">STT</th>
+                        <th width="15%">Ảnh Bìa</th>
+                        <th>Tiêu Đề & Tóm Tắt</th>
+                        <th width="15%">Ngày Đăng</th>
+                        <th width="15%">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tin in ds_tin %}
+                    <tr>
+                        <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                        <td class="text-center">
+                            {% if tin.anh_bia %}
+                                <img src="{{ tin.anh_bia.url }}" class="img-thumbnail" style="height: 70px; width: 100px; object-fit: cover;">
+                            {% else %}
+                                <span class="badge bg-secondary">Không có ảnh</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong class="text-primary fs-6">{{ tin.tieu_de }}</strong>
+                            <div class="small text-muted mt-1">{{ tin.tom_tat|truncatewords:15 }}</div>
+                        </td>
+                        <td class="text-center small fw-bold">{{ tin.ngay_dang|date:"d/m/Y H:i" }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'admin_sua_tin_tuc' tin.id %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i> Sửa</a>
+                            <a href="{% url 'admin_xoa_tin_tuc' tin.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn chắc chắn muốn xóa bài viết này?');"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">Chưa có bài viết nào. Hãy thêm bài viết đầu tiên!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

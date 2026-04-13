@@ -7,7 +7,6 @@ import logging
 from datetime import timedelta
 import base64
 
-
 from django.http import JsonResponse
 from collections import defaultdict
 from django.db.models import Q
@@ -24,51 +23,67 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from .models import DoiTacB2B, HoSoUngVien, LienHeGopY
 
-# === IMPORT MODELS CỦA BẠN ===
+# === IMPORT MODELS ===
 from .models import (
     TramXang, BonChua, NhaCungCap, HoaDon, ChiTietHoaDon, 
-    TinTuc, DanhMuc, SanPham, PhieuNhap, YeuCauNhapHang, BangGiaNhienLieu, BannerTrangChu,DanhMucMart, SanPhamMart,DanhGiaSanPham
+    TinTuc, DanhMuc, SanPham, PhieuNhap, YeuCauNhapHang, BangGiaNhienLieu, BannerTrangChu, DanhMucMart, SanPhamMart, DanhGiaSanPham, DoiTacB2B, HoSoUngVien, LienHeGopY
 )
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 # ==========================================
-# 1. HỆ THỐNG XÁC THỰC (AUTH)
+# 1. HỆ THỐNG XÁC THỰC (ĐÃ NÂNG CẤP PHÂN LUỒNG)
 # ==========================================
 def dang_nhap(request):
+    # Nếu đã đăng nhập rồi thì phân luồng đẩy thẳng vào trong luôn
+    if request.user.is_authenticated:
+        return phan_luong_dashboard(request.user)
+
     if request.method == 'POST':
         u = request.POST.get('username')
         p = request.POST.get('password')
         user = authenticate(request, username=u, password=p)
+        
         if user is not None:
             if not user.is_active:
                 messages.error(request, "Tài khoản của bạn đã bị khóa!")
                 return redirect('login')
                 
             login(request, user)
-            messages.success(request, f"Xin chào {user.username}!")
+            messages.success(request, f"Xin chào {user.full_name or user.username}!")
             
-            if user.role == 'admin' or user.is_superuser:
-                return redirect('admin_dashboard')
-            else:
-                return redirect('staff_pos')
+            # Đẩy qua hàm phân luồng
+            return phan_luong_dashboard(user)
         else:
             messages.error(request, "Tên đăng nhập hoặc mật khẩu không đúng!")
-    return render(request, 'login.html')
+            
+    return render(request, 'pages/login.html')
+
+# --- HÀM PHỤ TRỢ: CHIA ĐƯỜNG ĐI SAU KHI ĐĂNG NHẬP ---
+def phan_luong_dashboard(user):
+    if user.role in ['admin', 'ke_toan'] or user.is_superuser:
+        return redirect('admin_dashboard')    # Admin & Kế toán vào Dashboard Tổng
+    elif user.role == 'truong_tram':
+        return redirect('bao_cao_tram')       # Trưởng trạm vào trang báo cáo của trạm mình
+    elif user.role == 'nv_ban_hang':
+        return redirect('pos_mart')           # NV Bán hàng vào thẳng Siêu thị Mart
+    elif user.role == 'nv_ban_xang':
+        return redirect('pos_xang')           # NV Bơm xăng vào thẳng máy POS Bơm xăng
+    else:
+        return redirect('trang_chu')          # Fallback an toàn
 
 def dang_xuat(request):
     logout(request)
     messages.info(request, "Đăng xuất thành công.")
     return redirect('login')
 
+
 # ==========================================
-# 2. GIAO DIỆN KHÁCH & TRANG CHỦ
+# 2. GIAO DIỆN KHÁCH & TRANG CHỦ (PAGES)
 # ==========================================
 def guest_home(request):
-    # 1. Đổi tên biến cho khớp chuẩn với file HTML luôn nè
     tin_moi_nhat = TinTuc.objects.order_by('-ngay_dang')[:3]
     san_pham_hot = SanPham.objects.all()[:4]
     
@@ -100,19 +115,17 @@ def guest_home(request):
     }
 
     context = {
-        'tin_moi_nhat': tin_moi_nhat, # <--- ĐIỂM ĂN TIỀN LÀ SỬA CHỖ NÀY ĐÂY!
+        'tin_moi_nhat': tin_moi_nhat,
         'san_pham': san_pham_hot,
         'tram_json': json.dumps(tram_list), 
         'gia': gia_hien_tai
     }
-    return render(request, 'index.html', context)
+    return render(request, 'pages/trang_chu.html', context)
 
 def trang_gioi_thieu(request): return render(request, 'pages/gioi_thieu.html')
-def trang_tin_tuc(request):
-    # 1. Bắt từ khóa tìm kiếm (nếu người dùng có gõ)
-    tu_khoa = request.GET.get('q', '')
 
-    # 2. Lọc dữ liệu: Nếu có từ khóa thì tìm trong Tiêu đề hoặc Tóm tắt
+def trang_tin_tuc(request):
+    tu_khoa = request.GET.get('q', '')
     if tu_khoa:
         ds_tin_goc = TinTuc.objects.filter(
             Q(tieu_de__icontains=tu_khoa) | Q(tom_tat__icontains=tu_khoa)
@@ -120,31 +133,25 @@ def trang_tin_tuc(request):
     else:
         ds_tin_goc = TinTuc.objects.all().order_by('-ngay_dang')
 
-    # 3. Phân trang: Cắt mỗi trang đúng 6 bài báo cho đẹp
     paginator = Paginator(ds_tin_goc, 6) 
     page_number = request.GET.get('page')
     ds_tin = paginator.get_page(page_number)
 
-    # Đẩy dữ liệu ra giao diện
-    return render(request, 'pages/tin_tuc.html', {
-        'ds_tin': ds_tin,
-        'tu_khoa': tu_khoa
-    })
+    return render(request, 'pages/tin_tuc.html', {'ds_tin': ds_tin, 'tu_khoa': tu_khoa})
+
 def chi_tiet_tin_tuc(request, id):
-    # Lấy đúng bài viết theo ID, nếu không có thì báo lỗi 404
     tin = get_object_or_404(TinTuc, id=id)
-    
-    # Kèm thêm 3 bài viết mới nhất để làm mục "Tin liên quan" cho đẹp
     tin_lien_quan = TinTuc.objects.exclude(id=id).order_by('-ngay_dang')[:3]
-    
     return render(request, 'pages/chi_tiet_tin_tuc.html', {'tin': tin, 'tin_lien_quan': tin_lien_quan})
-def trang_san_pham(request): return render(request, 'pages/san_pham.html', {'ds_sp': SanPham.objects.all()})
+
+def trang_san_pham(request): 
+    return render(request, 'pages/san_pham.html', {'ds_sp': SanPham.objects.all()})
 
 def chi_tiet_linh_vuc(request, slug):
     data = {
         'kinh-doanh-xang-dau': {'title': 'Kinh Doanh Xăng Dầu', 'img': '/static/images/banners/kinh-doanh-xang-dau.jpg', 'content': '...', 'cam_ket': []},
         'van-tai-xang-dau': {'title': 'Vận Tải Xăng Dầu', 'img': '/static/images/banners/van-tai-xang-dau.jpg', 'content': '...', 'cam_ket': []},
-        'khi-hoa-long': {'title': 'Khí Hóa Lỏng (LPG)', 'img': '/static/images/khi_hoa_long.jpg', 'content': '...', 'cam_ket': []},
+        'khi-hoa-long': {'title': 'Khí Hóa Lỏng (LPG)', 'img': '/static/images/banners/khi-hoa-long.jpg', 'content': '...', 'cam_ket': []},
         'hoa-dau-dung-moi': {'title': 'Hóa Dầu & Dung Môi', 'img': '/static/images/banners/hoa-dau-dung-moi.jpg', 'content': '...', 'cam_ket': []},
         'dich-vu-tai-chinh': {'title': 'Dịch Vụ Tài Chính', 'img': '/static/images/banners/dich-vu-tai-chinh.jpg', 'content': '...', 'cam_ket': []}
     }
@@ -161,22 +168,26 @@ def trang_lien_he(request):
         try:
             send_mail(f"[Website Liên Hệ] {tieu_de}", f"Từ: {ho_ten} ({email_khach})\n\n{noi_dung}", settings.DEFAULT_FROM_EMAIL, ['admin@gsms.com'], fail_silently=False)
             messages.success(request, "Đã gửi thông điệp!")
-        except Exception as e: messages.error(request, f"Lỗi gửi email: {e}")
+        except Exception as e: 
+            messages.error(request, f"Lỗi gửi email: {e}")
         return redirect('lien_he')
     return render(request, 'pages/lien_he.html')
-def trang_doi_tac(request):
-    return render(request, 'pages/doi_tac.html')
 
-def trang_tuyen_dung(request):
-    return render(request, 'pages/tuyen_dung.html')
+def trang_doi_tac(request): return render(request, 'pages/doi_tac.html')
+
+def trang_tuyen_dung(request): return render(request, 'pages/tuyen_dung.html')
+
+
 # ==========================================
-# 3. NHÂN VIÊN (POS)
+# 3. NHÂN VIÊN & TRƯỞNG TRẠM (STAFF POS)
 # ==========================================
-# 1. MÁY POS BƠM XĂNG (Giữ nguyên 100% logic cũ của bạn)
 @login_required
 def pos_xang(request):
     user = request.user
-    if user.role == 'admin' or user.is_superuser: return redirect('admin_dashboard')
+    # Ngăn Admin & Kế toán vào màn hình POS bơm xăng
+    if user.role in ['admin', 'ke_toan'] or user.is_superuser: 
+        return redirect('admin_dashboard')
+        
     if not user.tram_xang:
         messages.error(request, "Tài khoản của bạn chưa được phân công về Trạm Xăng nào!")
         return redirect('login')
@@ -193,49 +204,48 @@ def pos_xang(request):
         b.gia_ban_hien_tai = dict_gia.get(b.loai_nhien_lieu, 20000)
         ds_bon.append(b)
 
-    if user.role == 'tram_truong':
+    if user.role == 'truong_tram':
         lich_su = HoaDon.objects.filter(nhan_vien__tram_xang=tram_cua_toi).order_by('-thoi_gian')[:20]
     else:
         lich_su = HoaDon.objects.filter(nhan_vien=user).order_by('-thoi_gian')[:10]
 
-    # Đổi tên file render thành pos_xang.html
-    return render(request, 'pos_xang.html', {
+    return render(request, 'staff/pos_xang.html', {
         'tram': tram_cua_toi, 
         'ds_bon': ds_bon, 
         'bon_can_canh_bao': bon_can_canh_bao, 
         'lich_su_ban': lich_su
     })
 
-
-# 2. MÁY POS SIÊU THỊ GSMS MART (Kế thừa bảo mật, gọi thêm Hàng Hóa)
 @login_required
 def pos_mart(request):
     user = request.user
-    if user.role == 'admin' or user.is_superuser: return redirect('admin_dashboard')
+    if user.role in ['admin', 'ke_toan'] or user.is_superuser: 
+        return redirect('admin_dashboard')
+        
     if not user.tram_xang:
         messages.error(request, "Tài khoản của bạn chưa được phân công về Trạm Xăng nào!")
         return redirect('login')
 
     tram_cua_toi = user.tram_xang
-    
-    # CHỈ KHÁC MỖI CHỖ NÀY: Lấy hàng hóa tạp hóa thay vì lấy bồn xăng
     san_pham_mart = SanPhamMart.objects.filter(ton_kho__gt=0)
 
-    # Lịch sử giao dịch vẫn giữ nguyên để thu ngân theo dõi được bill
-    if user.role == 'tram_truong':
+    if user.role == 'truong_tram':
         lich_su = HoaDon.objects.filter(nhan_vien__tram_xang=tram_cua_toi).order_by('-thoi_gian')[:20]
     else:
         lich_su = HoaDon.objects.filter(nhan_vien=user).order_by('-thoi_gian')[:10]
 
-    return render(request, 'pos_mart.html', {
+    return render(request, 'staff/pos_mart.html', {
         'tram': tram_cua_toi,
         'san_pham_mart': san_pham_mart,
         'lich_su_ban': lich_su
     })
+
 @login_required
 def xu_ly_ban_hang(request):
     if request.method == 'POST':
-        if request.user.role == 'admin' or request.user.is_superuser: return redirect('admin_dashboard')
+        if request.user.role in ['admin', 'ke_toan'] or request.user.is_superuser: 
+            return redirect('admin_dashboard')
+            
         try:
             loai_nl = request.POST.get('loai_nhien_lieu')
             so_tien = float(request.POST.get('so_tien'))
@@ -256,7 +266,7 @@ def xu_ly_ban_hang(request):
                     messages.error(request, "Bồn không đủ nhiên liệu để xuất!")
         except Exception as e:
             messages.error(request, "Có lỗi xảy ra, vui lòng thử lại!")
-    return redirect('staff_pos')
+    return redirect('pos_xang')
 
 @login_required
 def staff_chot_ca(request):
@@ -264,12 +274,13 @@ def staff_chot_ca(request):
     ds_hoa_don = HoaDon.objects.filter(nhan_vien=request.user, thoi_gian__date=today)
     tong_tien = ds_hoa_don.aggregate(Sum('tong_tien'))['tong_tien__sum'] or 0
     tong_lit = ChiTietHoaDon.objects.filter(hoa_don__in=ds_hoa_don).aggregate(Sum('so_luong'))['so_luong__sum'] or 0
-    return render(request, 'staff_chot_ca.html', {'tong_tien': tong_tien, 'so_gd': ds_hoa_don.count(), 'tong_lit': tong_lit, 'ngay_chot': timezone.now()})
+    
+    return render(request, 'staff/staff_chot_ca.html', {'tong_tien': tong_tien, 'so_gd': ds_hoa_don.count(), 'tong_lit': tong_lit, 'ngay_chot': timezone.now()})
 
 @login_required
 def tao_yeu_cau_nhap_hang(request):
     if request.method == 'POST':
-        if request.user.role != 'tram_truong': return redirect('staff_pos')
+        if request.user.role != 'truong_tram': return redirect('pos_xang')
         YeuCauNhapHang.objects.create(
             tram=request.user.tram_xang,
             loai_nhien_lieu=request.POST.get('loai_nhien_lieu'),
@@ -278,16 +289,17 @@ def tao_yeu_cau_nhap_hang(request):
             trang_thai='cho_duyet'
         )
         messages.success(request, "Đã gửi yêu cầu cấp hàng lên Tổng Công Ty!")
-    return redirect('staff_pos')
+    return redirect('pos_xang')
 
 @login_required
 def bao_cao_tram(request):
-    if request.user.role != 'tram_truong': return redirect('staff_pos')
+    if request.user.role != 'truong_tram': return redirect('pos_xang')
     tram = request.user.tram_xang
     today = timezone.now().date()
     hds_hom_nay = HoaDon.objects.filter(nhan_vien__tram_xang=tram, thoi_gian__date=today)
     doanh_thu_nhan_vien = HoaDon.objects.filter(nhan_vien__tram_xang=tram, thoi_gian__date=today).values('nhan_vien__username', 'nhan_vien__full_name').annotate(tong_ban=Sum('tong_tien'), so_don=Count('id')).order_by('-tong_ban')
-    return render(request, 'bao_cao_tram.html', {
+    
+    return render(request, 'staff/bao_cao_tram.html', {
         'tram': tram, 'ngay_bao_cao': timezone.now(),
         'doanh_thu_hom_nay': hds_hom_nay.aggregate(Sum('tong_tien'))['tong_tien__sum'] or 0,
         'so_gd_hom_nay': hds_hom_nay.count(),
@@ -296,12 +308,14 @@ def bao_cao_tram(request):
         'doanh_thu_nhan_vien': doanh_thu_nhan_vien,
     })
 
+
 # ==========================================
-# 4. QUẢN TRỊ TỔNG QUAN (ADMIN)
+# 4. QUẢN TRỊ TỔNG QUAN (ADMIN & KẾ TOÁN)
 # ==========================================
 @login_required
 def admin_dashboard(request):
-    if request.user.role != 'admin' and not request.user.is_superuser:
+    # Cho phép Admin và Kế toán được xem Dashboard Tài chính
+    if request.user.role not in ['admin', 'ke_toan'] and not request.user.is_superuser:
         messages.warning(request, "Bạn không có quyền truy cập!")
         return redirect('trang_chu')
 
@@ -315,7 +329,6 @@ def admin_dashboard(request):
     so_giao_dich = stats['total_tx'] or 0
     san_luong = ChiTietHoaDon.objects.filter(hoa_don__thoi_gian__date=today).aggregate(Sum('so_luong'))['so_luong__sum'] or 0
 
-    # TÍNH LỢI NHUẬN ƯỚC TÍNH TOÀN HỆ THỐNG
     loi_nhuan_hom_nay = doanh_thu * 0.065
 
     tu_khoa = request.GET.get('q', '')
@@ -337,10 +350,9 @@ def admin_dashboard(request):
 
     now = timezone.now()
     
-    # --- LOGIC MỚI: TÍNH DATA THẬT CHO BIỂU ĐỒ XẾP HẠNG XĂNG DẦU ---
     def lay_tong_nhien_lieu(hds_queryset):
         chi_tiet = ChiTietHoaDon.objects.filter(hoa_don__in=hds_queryset).values('ten_mat_hang').annotate(tong=Sum('so_luong'))
-        fuels = [0, 0, 0, 0] # Tương ứng mảng: [A95, E5, E10, DO]
+        fuels = [0, 0, 0, 0] 
         for item in chi_tiet:
             ten = item['ten_mat_hang']
             so_luong = float(item['tong'] or 0)
@@ -350,7 +362,6 @@ def admin_dashboard(request):
             elif 'DO' in ten: fuels[3] += so_luong
         return fuels
 
-    # 1. BIỂU ĐỒ NGÀY
     hds_7days = HoaDon.objects.filter(thoi_gian__date__gte=now.date() - timedelta(days=6))
     day_data = {'labels': [], 'revenue': [], 'volume': [], 'fuels': lay_tong_nhien_lieu(hds_7days)}
     for i in range(6, -1, -1):
@@ -360,7 +371,6 @@ def admin_dashboard(request):
         day_data['revenue'].append(float(hds.aggregate(Sum('tong_tien'))['tong_tien__sum'] or 0) / 1000000)
         day_data['volume'].append(float(ChiTietHoaDon.objects.filter(hoa_don__in=hds).aggregate(Sum('so_luong'))['so_luong__sum'] or 0))
 
-    # 2. BIỂU ĐỒ THÁNG
     hds_28days = HoaDon.objects.filter(thoi_gian__date__gte=now.date() - timedelta(days=27))
     month_data = {'labels': ['Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4'], 'revenue': [0,0,0,0], 'volume': [0,0,0,0], 'fuels': lay_tong_nhien_lieu(hds_28days)}
     for i in range(28):
@@ -370,7 +380,6 @@ def admin_dashboard(request):
         month_data['revenue'][week_idx] += float(hds.aggregate(Sum('tong_tien'))['tong_tien__sum'] or 0) / 1000000
         month_data['volume'][week_idx] += float(ChiTietHoaDon.objects.filter(hoa_don__in=hds).aggregate(Sum('so_luong'))['so_luong__sum'] or 0)
 
-    # 3. BIỂU ĐỒ NĂM
     hds_year = HoaDon.objects.filter(thoi_gian__year=now.year)
     year_data = {'labels': [f'T{i}' for i in range(1, 13)], 'revenue': [0]*12, 'volume': [0]*12, 'fuels': lay_tong_nhien_lieu(hds_year)}
     for hd in hds_year:
@@ -379,12 +388,11 @@ def admin_dashboard(request):
         sl_sum = ChiTietHoaDon.objects.filter(hoa_don=hd).aggregate(Sum('so_luong'))['so_luong__sum'] or 0
         year_data['volume'][m_idx] += float(sl_sum)
 
-    # 4. BIỂU ĐỒ QUÝ
     quarter_data = {
         'labels': ['Quý 1', 'Quý 2', 'Quý 3', 'Quý 4'],
         'revenue': [sum(year_data['revenue'][0:3]), sum(year_data['revenue'][3:6]), sum(year_data['revenue'][6:9]), sum(year_data['revenue'][9:12])],
         'volume': [sum(year_data['volume'][0:3]), sum(year_data['volume'][3:6]), sum(year_data['volume'][6:9]), sum(year_data['volume'][9:12])],
-        'fuels': year_data['fuels'] # Quý lấy tổng chung của cả Năm
+        'fuels': year_data['fuels'] 
     }
 
     chart_data = {'day': day_data, 'month': month_data, 'quarter': quarter_data, 'year': year_data}
@@ -399,10 +407,11 @@ def admin_dashboard(request):
         'bang_doanh_thu': bang_doanh_thu,
         'tu_khoa': tu_khoa,
     }
-    return render(request, 'admin_dashboard.html', context)
+    return render(request, 'admin/admin_dashboard.html', context)
 
 @login_required
 def admin_import(request):
+    # Chỉ Admin mới được quyền nhập xuất kho tổng
     if request.user.role != 'admin' and not request.user.is_superuser:
         messages.error(request, "Bạn không có quyền truy cập trang nhập hàng!")
         return redirect('trang_chu')
@@ -419,34 +428,29 @@ def admin_import(request):
                 
             with transaction.atomic():
                 bon = BonChua.objects.select_for_update().get(id=bon_id)
-                ncc = NhaCungCap.objects.select_for_update().get(id=ncc_id) # Lấy data Kho Tổng
+                ncc = NhaCungCap.objects.select_for_update().get(id=ncc_id) 
                 loai_nl = bon.loai_nhien_lieu
                 
-                # 1. KIỂM TRA XEM KHO TỔNG CÒN ĐỦ HÀNG KHÔNG?
                 ton_kho_hien_tai = getattr(ncc, f'ton_kho_{loai_nl}', 0) 
                 
                 if ton_kho_hien_tai < so_lit:
                     messages.error(request, f"LỖI: Kho {ncc.ten_ncc} chỉ còn {ton_kho_hien_tai:,.0f} Lít {loai_nl}. Không đủ xuất!")
                     return redirect('admin_import')
 
-                # 2. KIỂM TRA BỒN TRẠM CÓ BỊ TRÀN KHÔNG?
                 if bon.muc_hien_tai + so_lit > bon.suc_chua_toi_da:
                     messages.error(request, f"Cảnh báo: Bồn {bon.ten_bon} không đủ sức chứa!")
                 else:
-                    # 3. THỰC HIỆN ĐIỀU CHUYỂN
                     setattr(ncc, f'ton_kho_{loai_nl}', ton_kho_hien_tai - so_lit)
                     ncc.save() 
 
                     bon.muc_hien_tai += so_lit
                     bon.save() 
                     
-                    # 4. TÍNH TOÁN KINH TẾ
                     gia_nhap_si = 21000 
                     so_km = float(request.POST.get('khoang_cach', 0)) 
                     tien_cuoc = so_km * 15000
                     tien_hang = so_lit * gia_nhap_si
 
-                    # 5. TẠO PHIẾU NHẬP
                     PhieuNhap.objects.create(
                         ma_pn=f"PN-{timezone.now().strftime('%d%m%H%M%S')}-{random.randint(10,99)}",
                         nha_cung_cap_id=ncc_id,
@@ -458,7 +462,6 @@ def admin_import(request):
                         thanh_tien=tien_hang
                     )
 
-                    # 6. DỌN DẸP YÊU CẦU CỦA TRƯỞNG TRẠM
                     YeuCauNhapHang.objects.filter(
                         tram=bon.tram,
                         loai_nhien_lieu=loai_nl,
@@ -470,7 +473,6 @@ def admin_import(request):
         except Exception as e:
             messages.error(request, f"Lỗi nhập liệu: {e}")
 
-    # LẤY DỮ LIỆU ĐỂ VẼ BẢN ĐỒ KHI TẢI TRANG
     ds_ncc = NhaCungCap.objects.all()
     ds_bon = BonChua.objects.select_related('tram').all()
 
@@ -498,7 +500,7 @@ def admin_import(request):
         'station_json': json.dumps(list(station_dict.values())), 
         'ds_yeu_cau': ds_yeu_cau,
     }
-    return render(request, 'admin_import.html', context)
+    return render(request, 'admin/admin_import.html', context)
 
 
 @login_required
@@ -516,7 +518,10 @@ def duyet_yeu_cau(request, yc_id):
 
 @login_required
 def quan_ly_gia(request):
-    if request.user.role != 'admin' and not request.user.is_superuser: return redirect('trang_chu')
+    # Chỉ Admin mới được quyền set giá xăng
+    if request.user.role != 'admin' and not request.user.is_superuser: 
+        return redirect('trang_chu')
+        
     if request.method == 'POST':
         try:
             for loai, key in [('A95', 'gia_A95'), ('E5', 'gia_E5'), ('E10', 'gia_E10'), ('DO', 'gia_DO')]:
@@ -528,13 +533,15 @@ def quan_ly_gia(request):
         return redirect('quan_ly_gia')
         
     gia_hien_tai = {loai: BangGiaNhienLieu.objects.filter(loai_nhien_lieu=loai).first() for loai in ['A95', 'E5', 'E10', 'DO']}
-    return render(request, 'quan_ly_gia.html', {'gia_hien_tai': gia_hien_tai})
+    return render(request, 'admin/quan_ly_gia.html', {'gia_hien_tai': gia_hien_tai})
 
 
 @login_required
 def xuat_excel_doanh_thu(request):
-    if request.user.role != 'admin' and not request.user.is_superuser: 
+    # Kế toán được quyền xuất Excel
+    if request.user.role not in ['admin', 'ke_toan'] and not request.user.is_superuser: 
         return redirect('trang_chu')
+        
     try:
         import openpyxl
         from openpyxl.styles import Font, Alignment
@@ -547,7 +554,6 @@ def xuat_excel_doanh_thu(request):
     ws.title = "Bao_Cao_Doanh_Thu_Tram"
     ws.append(['STT', 'Tên Trạm Xăng', 'Địa Chỉ', 'Doanh Thu (VNĐ)', 'Sản Lượng (Lít)', 'Số Đơn'])
     
-    # Định dạng Header
     for cell in ws[1]:
         cell.font = Font(bold=True)
         cell.alignment = Alignment(horizontal='center')
@@ -564,16 +570,14 @@ def xuat_excel_doanh_thu(request):
         tong_dt += dt
         ws.append([stt, t.ten_tram, t.dia_chi, dt, sl, hds.count()])
 
-    # Dòng tổng cộng
     ws.append(['', 'TỔNG CỘNG TOÀN HỆ THỐNG', '', tong_dt, '', ''])
     for cell in ws[ws.max_row]:
-        cell.font = Font(bold=True, color="FF0000") # Bôi đỏ dòng tổng cộng
+        cell.font = Font(bold=True, color="FF0000") 
         
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="BaoCao_DoanhThu_GSMS_{timezone.now().strftime("%d%m%Y")}.xlsx"'
     wb.save(response)
     return response
-
 
 def tao_du_lieu_mau(request):
     messages.error(request, "Chức năng Reset dữ liệu đã bị khóa để bảo vệ hệ thống!")
@@ -586,7 +590,7 @@ def tao_du_lieu_mau(request):
 def admin_danh_sach_tram(request):
     if request.user.role != 'admin' and not request.user.is_superuser: return redirect('trang_chu')
     ds_tram = TramXang.objects.all().order_by('-id')
-    return render(request, 'admin_trams.html', {'ds_tram': ds_tram})
+    return render(request, 'admin/admin_trams.html', {'ds_tram': ds_tram})
 
 @login_required
 def admin_them_tram(request):
@@ -594,32 +598,29 @@ def admin_them_tram(request):
     
     if request.method == 'POST':
         try:
-            # 1. Tạo trạm
             tram = TramXang.objects.create(
                 ten_tram=request.POST.get('ten_tram'), dia_chi=request.POST.get('dia_chi'),
                 latitude=float(request.POST.get('latitude', 0)), longitude=float(request.POST.get('longitude', 0))
             )
             
-            # 2. Tạo bồn tự động
             nhien_lieu_duoc_chon = request.POST.getlist('nhien_lieu')
             thong_so = {'A95': 15000, 'E5': 10000, 'E10': 10000, 'DO': 20000}
             for nl in nhien_lieu_duoc_chon:
                 if nl in thong_so:
                     BonChua.objects.create(tram=tram, ten_bon=f"Bồn {nl}", loai_nhien_lieu=nl, suc_chua_toi_da=thong_so[nl], muc_hien_tai=0)
 
-            # 3. Tạo 2 tài khoản ngẫu nhiên
             p_truong = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
             p_nv = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
             
-            User.objects.create_user(username=f"truongtram_{tram.id}", password=p_truong, full_name=f"Trưởng {tram.ten_tram}", role="tram_truong", tram_xang=tram)
-            User.objects.create_user(username=f"nhanvien_{tram.id}", password=p_nv, full_name=f"NV {tram.ten_tram}", role="staff", tram_xang=tram)
+            User.objects.create_user(username=f"truongtram_{tram.id}", password=p_truong, full_name=f"Trưởng {tram.ten_tram}", role="truong_tram", tram_xang=tram)
+            User.objects.create_user(username=f"nhanvien_{tram.id}", password=p_nv, full_name=f"NV {tram.ten_tram}", role="nv_ban_xang", tram_xang=tram)
 
             messages.success(request, f"Đã tạo Trạm! Mật khẩu Trưởng: {p_truong} | NV: {p_nv}")
             return redirect('admin_trams')
         except Exception as e:
             messages.error(request, f"Lỗi: {e}")
 
-    return render(request, 'admin_tram_form.html')
+    return render(request, 'admin/admin_tram_form.html')
 
 @login_required
 def admin_sua_tram(request, id):
@@ -630,7 +631,6 @@ def admin_sua_tram(request, id):
         tram.ten_tram = request.POST.get('ten_tram')
         tram.dia_chi = request.POST.get('dia_chi')
         
-        # BÍ QUYẾT Ở ĐÂY: Bắt chuỗi, đổi dấu phẩy (,) thành chấm (.) rồi mới ép kiểu float
         lat_str = str(request.POST.get('latitude', '0')).replace(',', '.')
         lng_str = str(request.POST.get('longitude', '0')).replace(',', '.')
         
@@ -641,7 +641,7 @@ def admin_sua_tram(request, id):
         messages.success(request, 'Đã cập nhật thông tin Trạm xăng!')
         return redirect('admin_trams')
         
-    return render(request, 'admin_tram_form.html', {'tram': tram})
+    return render(request, 'admin/admin_tram_form.html', {'tram': tram})
 
 @login_required
 def admin_xoa_tram(request, id):
@@ -651,7 +651,6 @@ def admin_xoa_tram(request, id):
     messages.success(request, 'Đã xóa Trạm xăng!')
     return redirect('admin_trams')
 
-
 # ==========================================
 # 6. CRUD: KHO TỔNG / NHÀ CUNG CẤP
 # ==========================================
@@ -659,7 +658,7 @@ def admin_xoa_tram(request, id):
 def admin_danh_sach_kho(request):
     if request.user.role != 'admin' and not request.user.is_superuser: return redirect('trang_chu')
     ds_kho = NhaCungCap.objects.all().order_by('-id')
-    return render(request, 'admin_khos.html', {'ds_kho': ds_kho})
+    return render(request, 'admin/admin_khos.html', {'ds_kho': ds_kho})
 
 @login_required
 def admin_them_kho(request):
@@ -671,7 +670,7 @@ def admin_them_kho(request):
         )
         messages.success(request, "Thêm Kho tổng thành công!")
         return redirect('admin_khos')
-    return render(request, 'admin_kho_form.html')
+    return render(request, 'admin/admin_kho_form.html')
 
 @login_required
 def admin_sua_kho(request, id):
@@ -686,7 +685,7 @@ def admin_sua_kho(request, id):
         kho.save()
         messages.success(request, "Cập nhật Kho thành công!")
         return redirect('admin_khos')
-    return render(request, 'admin_kho_form.html', {'kho': kho})
+    return render(request, 'admin/admin_kho_form.html', {'kho': kho})
 
 @login_required
 def admin_xoa_kho(request, id):
@@ -696,7 +695,6 @@ def admin_xoa_kho(request, id):
     messages.success(request, "Đã xóa Kho tổng!")
     return redirect('admin_khos')
 
-
 # ==========================================
 # 7. CRUD: NHÂN SỰ
 # ==========================================
@@ -704,7 +702,7 @@ def admin_xoa_kho(request, id):
 def admin_danh_sach_nhan_su(request):
     if request.user.role != 'admin' and not request.user.is_superuser: return redirect('trang_chu')
     ds_nhan_su = User.objects.exclude(is_superuser=True).exclude(role='admin').order_by('-date_joined')
-    return render(request, 'admin_nhan_sus.html', {'ds_nhan_su': ds_nhan_su})
+    return render(request, 'admin/admin_nhan_sus.html', {'ds_nhan_su': ds_nhan_su})
 
 @login_required
 def admin_them_nhan_su(request):
@@ -717,7 +715,7 @@ def admin_them_nhan_su(request):
         )
         messages.success(request, "Tạo nhân viên mới thành công!")
         return redirect('admin_nhan_sus')
-    return render(request, 'admin_nhan_su_form.html', {'ds_tram': TramXang.objects.all()})
+    return render(request, 'admin/admin_nhan_su_form.html', {'ds_tram': TramXang.objects.all()})
 
 @login_required
 def admin_sua_nhan_su(request, id):
@@ -735,7 +733,7 @@ def admin_sua_nhan_su(request, id):
         nv.save()
         messages.success(request, "Cập nhật nhân viên thành công!")
         return redirect('admin_nhan_sus')
-    return render(request, 'admin_nhan_su_form.html', {'nv': nv, 'ds_tram': TramXang.objects.all()})
+    return render(request, 'admin/admin_nhan_su_form.html', {'nv': nv, 'ds_tram': TramXang.objects.all()})
 
 @login_required
 def admin_xoa_nhan_su(request, id):
@@ -747,6 +745,7 @@ def admin_xoa_nhan_su(request, id):
         nv.delete()
         messages.success(request, "Đã xóa nhân viên!")
     return redirect('admin_nhan_sus')
+
 # ==========================================
 # 8. CRUD: TIN TỨC
 # ==========================================
@@ -757,14 +756,13 @@ def admin_tin_tuc(request):
         return redirect('trang_chu')
     
     ds_tin = TinTuc.objects.all().order_by('-ngay_dang')
-    return render(request, 'admin_tin_tuc.html', {'ds_tin': ds_tin})
+    return render(request, 'admin/admin_tin_tuc.html', {'ds_tin': ds_tin})
 
 @login_required
 def admin_tin_tuc_form(request, tin_id=None):
     if request.user.role != 'admin' and not request.user.is_superuser:
         return redirect('trang_chu')
 
-    # Nếu có tin_id truyền vào nghĩa là đang Sửa, nếu không là Thêm mới
     tin_hien_tai = get_object_or_404(TinTuc, id=tin_id) if tin_id else None
 
     if request.method == 'POST':
@@ -772,16 +770,16 @@ def admin_tin_tuc_form(request, tin_id=None):
             tieu_de = request.POST.get('tieu_de')
             tom_tat = request.POST.get('tom_tat')
             noi_dung = request.POST.get('noi_dung')
-            anh_bia = request.FILES.get('anh_bia') # 🚨 Lấy file ảnh từ request.FILES
+            anh_bia = request.FILES.get('anh_bia') 
 
             if not tin_hien_tai:
-                tin_hien_tai = TinTuc() # Tạo mới
+                tin_hien_tai = TinTuc() 
 
             tin_hien_tai.tieu_de = tieu_de
             tin_hien_tai.tom_tat = tom_tat
             tin_hien_tai.noi_dung = noi_dung
             
-            if anh_bia: # Chỉ cập nhật ảnh nếu Admin có chọn file mới
+            if anh_bia: 
                 tin_hien_tai.anh_bia = anh_bia
 
             tin_hien_tai.save()
@@ -790,7 +788,7 @@ def admin_tin_tuc_form(request, tin_id=None):
         except Exception as e:
             messages.error(request, f"Lỗi: {e}")
 
-    return render(request, 'admin_tin_tuc_form.html', {'tin': tin_hien_tai})
+    return render(request, 'admin/admin_tin_tuc_form.html', {'tin': tin_hien_tai})
 
 @login_required
 def admin_xoa_tin_tuc(request, tin_id):
@@ -808,7 +806,7 @@ def admin_banners(request):
     if request.user.role != 'admin' and not request.user.is_superuser:
         return redirect('trang_chu')
     ds_banner = BannerTrangChu.objects.all().order_by('-id')
-    return render(request, 'admin_banners.html', {'ds_banner': ds_banner})
+    return render(request, 'admin/admin_banners.html', {'ds_banner': ds_banner})
 
 @login_required
 def admin_banner_form(request, banner_id=None):
@@ -823,7 +821,6 @@ def admin_banner_form(request, banner_id=None):
         chien_dich = request.POST.get('ten_chien_dich')
         hien_thi = request.POST.get('dang_hien_thi') == 'on'
         
-        # Bắt dữ liệu ảnh đã cắt (Base64)
         cropped_data = request.POST.get('cropped_image_base64')
 
         if not banner:
@@ -834,7 +831,6 @@ def admin_banner_form(request, banner_id=None):
         banner.ten_chien_dich = chien_dich
         banner.dang_hien_thi = hien_thi
 
-        # Xử lý lưu ảnh
         if cropped_data:
             format, imgstr = cropped_data.split(';base64,')
             ext = format.split('/')[-1]
@@ -849,7 +845,7 @@ def admin_banner_form(request, banner_id=None):
         messages.success(request, "Đã cập nhật Banner thành công!")
         return redirect('admin_banners')
 
-    return render(request, 'admin_banner_form.html', {'banner': banner})
+    return render(request, 'admin/admin_banner_form.html', {'banner': banner})
 
 @login_required
 def admin_xoa_banner(request, banner_id):
@@ -881,7 +877,6 @@ def nop_ho_so(request):
                 ho_ten=request.POST.get('ho_ten'),
                 so_dien_thoai=request.POST.get('so_dien_thoai'),
                 email=request.POST.get('email'),
-                # Chú ý: File upload phải dùng request.FILES
                 file_cv=request.FILES.get('file_cv') 
             )
             messages.success(request, "Nộp hồ sơ thành công! Chúc bạn may mắn.")
@@ -891,10 +886,10 @@ def nop_ho_so(request):
 
 @login_required
 def admin_inbox(request):
-    if request.user.role != 'admin' and not request.user.is_superuser:
+    # Kế toán được quyền truy cập hộp thư để xử lý Hợp đồng B2B
+    if request.user.role not in ['admin', 'ke_toan'] and not request.user.is_superuser:
         return redirect('trang_chu')
 
-    # Bắt sự kiện khi Sếp bấm nút "Cập nhật trạng thái"
     if request.method == 'POST':
         loai = request.POST.get('loai')
         item_id = request.POST.get('id')
@@ -919,39 +914,35 @@ def admin_inbox(request):
                     obj.da_duyet = True
                     obj.save()
                 elif hanh_dong == 'xoa':
-                    obj.delete() # Đánh giá láo thì cho bay màu luôn
+                    obj.delete() 
             messages.success(request, "Đã cập nhật trạng thái thành công!")
         except Exception as e:
             messages.error(request, f"Lỗi: {e}")
         return redirect('admin_inbox')
 
-    # Lấy dữ liệu đẩy ra giao diện (Sắp xếp cái mới nhất lên đầu)
     context = {
         'ds_b2b': DoiTacB2B.objects.all().order_by('-ngay_gui'),
         'ds_ung_vien': HoSoUngVien.objects.all().order_by('-ngay_nop'),
         'ds_gop_y': LienHeGopY.objects.all().order_by('da_xu_ly', '-ngay_gui'),
          'ds_danh_gia': DanhGiaSanPham.objects.all().order_by('da_duyet', '-ngay_gui'), 
     }
-    return render(request, 'admin_inbox.html', context)
+    return render(request, 'admin/admin_inbox.html', context)
 
 @login_required
-@transaction.atomic # Dùng transaction để đảm bảo nếu lỗi thì hoàn tác toàn bộ, không bị mất hàng
+@transaction.atomic 
 def xu_ly_ban_mart(request):
     if request.method == 'POST':
         try:
-            # Lấy dữ liệu giỏ hàng từ Javascript gửi lên
             data = json.loads(request.body)
             gio_hang = data.get('gio_hang', [])
             
             if not gio_hang:
                 return JsonResponse({'success': False, 'message': 'Giỏ hàng đang trống!'})
 
-            # Tính toán tiền (Có cộng VAT 8%)
             tong_tien_hang = sum(item['gia'] * item['soLuong'] for item in gio_hang)
             tien_vat = tong_tien_hang * 0.08
             thanh_tien = tong_tien_hang + tien_vat
 
-            # 1. TẠO HÓA ĐƠN TỔNG
             ma_hd = f"MART-{uuid.uuid4().hex[:6].upper()}"
             hoa_don = HoaDon.objects.create(
                 ma_hd=ma_hd,
@@ -959,20 +950,15 @@ def xu_ly_ban_mart(request):
                 tong_tien=thanh_tien
             )
 
-            # 2. LƯU CHI TIẾT VÀ TRỪ TỒN KHO
             for item in gio_hang:
-                # Dùng select_for_update() để khóa dòng này lại, chống việc 2 nhân viên bán cùng 1 chai nước cùng lúc
                 sp = SanPhamMart.objects.select_for_update().get(id=item['id'])
                 
-                # Kiểm tra kho lần cuối
                 if sp.ton_kho < item['soLuong']:
                     raise ValueError(f"Mặt hàng '{sp.ten_san_pham}' không đủ tồn kho (Chỉ còn {sp.ton_kho}).")
                 
-                # Trừ kho và lưu lại
                 sp.ton_kho -= item['soLuong']
                 sp.save()
 
-                # Ghi vào chi tiết hóa đơn
                 ChiTietHoaDon.objects.create(
                     hoa_don=hoa_don,
                     ten_mat_hang=item['ten'],
@@ -981,11 +967,10 @@ def xu_ly_ban_mart(request):
                     thanh_tien=item['gia'] * item['soLuong']
                 )
 
-            # Trả về kết quả thành công cho Javascript
             return JsonResponse({'success': True, 'message': 'Thanh toán thành công!', 'ma_hd': ma_hd})
 
         except ValueError as ve:
-            return JsonResponse({'success': False, 'message': str(ve)}) # Lỗi hết hàng
+            return JsonResponse({'success': False, 'message': str(ve)}) 
         except Exception as e:
             return JsonResponse({'success': False, 'message': f'Lỗi hệ thống: {str(e)}'})
             
@@ -998,12 +983,11 @@ def gui_danh_gia(request, sp_id):
             DanhGiaSanPham.objects.create(
                 san_pham=sp,
                 ten_khach_hang=request.POST.get('ten_khach_hang'),
-                so_sao=request.POST.get('so_sao', 5), # Mặc định 5 sao nếu lỗi
+                so_sao=request.POST.get('so_sao', 5), 
                 noi_dung=request.POST.get('noi_dung')
             )
             messages.success(request, "Cảm ơn bạn! Đánh giá đã được gửi và đang chờ Ban quản trị kiểm duyệt.")
         except Exception as e:
             messages.error(request, f"Lỗi gửi đánh giá: {e}")
             
-    # Xử lý xong thì quay lại trang khách vừa đứng
     return redirect(request.META.get('HTTP_REFERER', 'san_pham'))

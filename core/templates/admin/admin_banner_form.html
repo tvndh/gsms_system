@@ -1,0 +1,219 @@
+{% extends 'base_admin.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<style>
+    /* === 1. CSS KHU VỰC CHUNG === */
+    .modal-body-crop {
+        background-color: #000000; /* Đổi sang đen tuyền chuẩn iOS */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 65vh; 
+    }
+    .img-container { width: 100%; height: 100%; }
+    #image-to-crop { max-width: 100%; display: block; }
+
+    .drop-zone {
+        border: 2px dashed #0d6efd; border-radius: 12px; padding: 40px 20px;
+        text-align: center; background-color: #f8f9fa; cursor: pointer; transition: all 0.3s ease;
+    }
+    .drop-zone:hover, .drop-zone.dragover { background-color: #e9ecef; border-color: #198754; transform: scale(1.01); }
+    .drop-zone-icon { font-size: 3rem; color: #0d6efd; margin-bottom: 10px; }
+
+    .preview-container { 
+        width: 100%; height: 250px; overflow: hidden; border: 2px dashed #ccc; 
+        border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f8f9fa; 
+    }
+    #final-preview { width: 100%; height: 100%; object-fit: contain; }
+
+    /* === 2. GIAO DIỆN CẮT ẢNH CHUẨN SWIFTYCROP / iOS 17 === */
+    /* Làm nền bên ngoài tối đen mờ */
+    .cropper-modal { background-color: #000 !important; opacity: 0.85 !important; }
+    
+    /* Đường lưới mờ bên trong (Guides) */
+    .cropper-dashed, .cropper-line { border-color: rgba(255, 255, 255, 0.4) !important; }
+    
+    /* Viền bao quanh khung cắt */
+    .cropper-view-box { outline: 1px solid rgba(255, 255, 255, 0.8) !important; outline-color: rgba(255, 255, 255, 0.8) !important; }
+    
+    /* Ẩn cục xanh vuông mặc định của Cropper.js đi */
+    .cropper-point { background-color: transparent !important; opacity: 1 !important; }
+    .cropper-point.point-e, .cropper-point.point-n, .cropper-point.point-w, .cropper-point.point-s { display: none !important; } /* Ẩn các điểm ở giữa cạnh */
+    
+    /* TẠO 4 GÓC KÉO DÀY VÀ TRẮNG CHUẨN APPLE */
+    .cropper-point.point-se { width: 24px !important; height: 24px !important; border-right: 4px solid white; border-bottom: 4px solid white; right: -3px !important; bottom: -3px !important; }
+    .cropper-point.point-sw { width: 24px !important; height: 24px !important; border-left: 4px solid white; border-bottom: 4px solid white; left: -3px !important; bottom: -3px !important; }
+    .cropper-point.point-ne { width: 24px !important; height: 24px !important; border-right: 4px solid white; border-top: 4px solid white; right: -3px !important; top: -3px !important; }
+    .cropper-point.point-nw { width: 24px !important; height: 24px !important; border-left: 4px solid white; border-top: 4px solid white; left: -3px !important; top: -3px !important; }
+
+    /* Đổi màu viền modal */
+    #cropModal .modal-content { border-radius: 16px; background-color: #1c1c1e; }
+    #cropModal .modal-header, #cropModal .modal-footer { background-color: #1c1c1e !important; border-color: #38383a !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-dark text-white p-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-magic me-2 text-warning"></i> Cấu Hình Banner</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data" id="bannerForm">
+                        {% csrf_token %}
+                        <textarea name="cropped_image_base64" id="cropped_data" style="display:none;"></textarea>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2">Tên chiến dịch</label>
+                                <input type="text" name="ten_chien_dich" class="form-control" value="{{ banner.ten_chien_dich|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" name="dang_hien_thi" id="hienThi" {% if banner.dang_hien_thi %}checked{% endif %}>
+                                    <label class="form-check-label fw-bold" for="hienThi">Kích hoạt hiển thị</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-bold mb-2">Tiêu đề chính</label>
+                            <input type="text" name="tieu_de_chinh" class="form-control" value="{{ banner.tieu_de_chinh|default:'' }}">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold mb-2">Tiêu đề phụ (Mô tả ngắn)</label>
+                            <textarea name="tieu_de_phu" class="form-control" rows="2">{{ banner.tieu_de_phu|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold mb-2">Ảnh Banner (Tỷ lệ 16:9)</label>
+                            <div id="drop-zone" class="drop-zone mb-3 shadow-sm">
+                                <i class="fas fa-cloud-upload-alt drop-zone-icon"></i>
+                                <h5 class="fw-bold text-secondary">Kéo thả ảnh vào đây</h5>
+                                <p class="text-muted small mb-0">hoặc click để chọn file từ máy tính</p>
+                                <input type="file" id="inputImage" class="d-none" accept="image/*">
+                            </div>
+    
+                            <div class="preview-container">
+                                <img id="final-preview" src="{% if banner %}{{ banner.anh_banner.url }}{% endif %}" style="max-height: 100%; {% if not banner %}display:none;{% endif %}">
+                                {% if not banner %}<span class="text-muted" id="preview-text">Chưa có ảnh được chọn</span>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'admin_banners' %}" class="btn btn-outline-secondary px-4 fw-bold">Hủy</a>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold shadow">LƯU CẤU HÌNH</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cropModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content overflow-hidden border-0 shadow-lg">
+            
+            <div class="modal-header text-white p-3 d-flex justify-content-between">
+                <h5 class="modal-title fw-bold m-0"><i class="fas fa-crop text-light me-2"></i>Cắt ảnh</h5>
+                <button type="button" class="btn btn-sm btn-dark rounded-circle px-2 text-muted border-0" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="modal-body p-0 modal-body-crop">
+                <div class="img-container">
+                    <img id="image-to-crop">
+                </div>
+            </div>
+            
+            <div class="modal-footer p-3 d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-dark text-white shadow-sm" onclick="cropper.rotate(90)" title="Xoay ảnh 90 độ">
+                    <i class="fas fa-redo-alt"></i>
+                </button>
+                
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-dark px-4 fw-bold text-white" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-warning px-5 fw-bold text-dark shadow-sm" id="btn-crop">
+                        Xong
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    let cropper;
+    const inputImage = document.getElementById('inputImage');
+    const dropZone = document.getElementById('drop-zone'); 
+    const imageToCrop = document.getElementById('image-to-crop');
+    const cropModal = new bootstrap.Modal(document.getElementById('cropModal'));
+    const croppedDataInput = document.getElementById('cropped_data');
+    const finalPreview = document.getElementById('final-preview');
+
+    dropZone.addEventListener('click', () => inputImage.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            inputImage.files = e.dataTransfer.files; xuLyFileAnh(e.dataTransfer.files[0]);    
+        }
+    });
+    inputImage.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files.length > 0) { xuLyFileAnh(e.target.files[0]); }
+    });
+
+    function xuLyFileAnh(file) {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                if (cropper) { cropper.destroy(); }
+                imageToCrop.src = event.target.result;
+                cropModal.show(); 
+            };
+            reader.readAsDataURL(file);
+        } else { alert("Vui lòng chỉ kéo thả file hình ảnh (JPG, PNG)!"); }
+    }
+
+    // === CẤU HÌNH CROPPER CHUẨN SwiftyCrop / iOS ===
+    document.getElementById('cropModal').addEventListener('shown.bs.modal', function () {
+        cropper = new Cropper(imageToCrop, {
+            aspectRatio: 16 / 9,
+            viewMode: 1,           // Không cho kéo khung lố ra ngoài ảnh
+            autoCropArea: 0.85,    // Mở ra chừa lề một chút nhìn cho sang
+            dragMode: 'move',      // Bấm vào ảnh để di chuyển ảnh
+            background: false,     // Tắt nền sọc caro
+            guides: true,          // BẬT lưới cắt (đã được CSS làm mờ đi ở trên)
+            center: false,         // Tắt dấu cộng giữa tâm
+            highlight: false,      // Tắt lớp màng sáng giữa khung
+            cropBoxMovable: true,  // Cho phép di chuyển khung
+            cropBoxResizable: true // Cho phép nắm 4 góc viền trắng để thay đổi kích thước
+        });
+    });
+
+    document.getElementById('cropModal').addEventListener('hidden.bs.modal', function () {
+        if (cropper) { cropper.destroy(); cropper = null; }
+    });
+
+    document.getElementById('btn-crop').addEventListener('click', function() {
+        const canvas = cropper.getCroppedCanvas({ width: 1920, height: 1080 }); 
+        const base64 = canvas.toDataURL('image/jpeg', 0.8);
+        
+        croppedDataInput.value = base64;
+        finalPreview.src = base64;
+        finalPreview.style.display = 'block';
+        if(document.getElementById('preview-text')) document.getElementById('preview-text').style.display = 'none';
+        
+        cropModal.hide();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load humanize %} 
+
+{# --- ẨN NAVBAR ĐỂ TẬP TRUNG VÀO MÀN HÌNH CHỐT CA --- #}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 bg-light d-flex align-items-center justify-content-center py-4" id="screen-container">
+    
+    <div class="receipt-wrapper shadow-lg">
+        <div class="card border-0 bg-white" id="phieu-in" style="border-radius: 12px; overflow: hidden;">
+            
+            <div class="text-center pt-4 pb-2 px-4 border-bottom border-2 border-dark border-dashed">
+                <i class="fas fa-gas-pump fa-3x text-success mb-2 icon-print-hide"></i>
+                <h4 class="fw-bold text-uppercase mb-1">GSMS PETROLEUM</h4>
+                <div class="small fw-bold">{{ user.tram_xang.ten_tram|default:"Trạm Xăng Nội Bộ" }}</div>
+                <div class="small text-muted">{{ user.tram_xang.dia_chi|default:"" }}</div>
+                <h5 class="fw-bold mt-4 mb-0">BẢNG KÊ CHỐT CA</h5>
+                <div class="small text-muted">Ngày in: {{ ngay_chot|date:"d/m/Y H:i" }}</div>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Nhân viên ca:</span>
+                        <span class="fw-bold text-uppercase">{{ user.full_name|default:user.username }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Mã nhân viên:</span>
+                        <span class="fw-bold">{{ user.username }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Trạng thái:</span>
+                        <span class="fw-bold text-success">Hoàn thành ca</span>
+                    </div>
+                </div>
+
+                <hr class="border-dark border-dashed opacity-50">
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center py-2">
+                        <span class="fw-bold">TỔNG SỐ LƯỢNG ĐƠN:</span>
+                        <span class="fw-bold fs-5">{{ so_gd }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2">
+                        <span class="fw-bold">TỔNG SẢN LƯỢNG BÁN:</span>
+                        <span class="fw-bold fs-5">{{ tong_lit|floatformat:2|intcomma }} Lít</span>
+                    </div>
+                </div>
+
+                <hr class="border-dark border-dashed opacity-50">
+
+                <div class="bg-light p-3 text-center rounded">
+                    <div class="small fw-bold text-muted mb-1">TỔNG TIỀN MẶT PHẢI NỘP</div>
+                    <div class="fw-bold text-danger display-5 mb-0">{{ tong_tien|floatformat:0|intcomma }} <span class="fs-4">đ</span></div>
+                </div>
+
+                <div class="signature-area mt-5 pt-3 d-none">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <p class="fw-bold mb-5">Người Nộp Tiền<br><small class="fw-normal fst-italic">(Ký, ghi rõ họ tên)</small></p>
+                            <p class="mt-5">{{ user.full_name|default:user.username }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="fw-bold mb-5">Người Nhận Tiền<br><small class="fw-normal fst-italic">(Ký, ghi rõ họ tên)</small></p>
+                            <p class="mt-5">.............................</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 action-buttons">
+            <div class="alert alert-warning text-center small shadow-sm border-warning rounded-3 mb-3">
+                <i class="fas fa-exclamation-circle text-danger"></i> Vui lòng in bảng kê, ký tên và nộp kèm tiền mặt cho Quản lý trước khi về.
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-outline-dark btn-lg fw-bold py-3 shadow-sm bg-white" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i> IN BẢNG KÊ
+                </button>
+                <a href="{% url 'dang_xuat' %}" class="btn btn-danger btn-lg fw-bold py-3 shadow">
+                    <i class="fas fa-lock me-2"></i> KHÓA MÁY & ĐĂNG XUẤT
+                </a>
+                
+                <div class="text-center mt-2">
+                    <a href="{% if user.role == 'nv_ban_hang' %}{% url 'pos_mart' %}{% else %}{% url 'pos_xang' %}{% endif %}" class="btn btn-link text-muted text-decoration-none">
+                        <i class="fas fa-arrow-left"></i> Quay lại màn hình làm việc
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* KHUNG BIÊN LAI (Màn hình web) */
+    .receipt-wrapper {
+        width: 100%;
+        max-width: 420px; /* Khổ hẹp giống tờ hóa đơn */
+        margin: 0 auto;
+    }
+    .border-dashed { border-style: dashed !important; }
+
+    /* ==========================================
+       CSS SIÊU CẤP DÀNH RIÊNG CHO MÁY IN (Print)
+       ========================================== */
+    @media print {
+        /* Reset toàn bộ trang */
+        body, html { 
+            background-color: white !important; 
+            margin: 0; padding: 0;
+            width: 100%;
+        }
+
+        /* Ẩn tất cả những thứ không cần in (Nút bấm, cảnh báo...) */
+        .action-buttons, .icon-print-hide { display: none !important; }
+
+        /* Biến khung biên lai thành full tờ giấy */
+        #screen-container { 
+            background: white !important; 
+            display: block !important; 
+            padding: 0 !important;
+        }
+        .receipt-wrapper { 
+            max-width: 100%; 
+            box-shadow: none !important; 
+            margin: 0 !important;
+        }
+        #phieu-in {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        /* Xóa màu nền của các div, biến tất cả thành chữ đen trắng để tiết kiệm mực */
+        .bg-light, .bg-white, .bg-danger, .text-danger, .text-success, .text-primary { 
+            background-color: transparent !important; 
+            color: black !important; 
+        }
+        
+        /* HIỂN THỊ KHU VỰC CHỮ KÝ TRÊN GIẤY IN */
+        .signature-area { display: block !important; }
+
+        /* Tối ưu cỡ chữ cho máy in nhiệt K80 */
+        body { font-size: 14px; font-family: 'Courier New', Courier, monospace; }
+        .display-5 { font-size: 24px !important; }
+    }
+</style>
+{% endblock %}

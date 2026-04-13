@@ -3,10 +3,7 @@
 
 {% block content %}
 <style>
-    .partner-hero {
-        background: linear-gradient(135deg, rgba(15, 76, 129, 0.9) 0%, rgba(33, 37, 41, 0.9) 100%), url('https://images.unsplash.com/photo-1519003722824-194d4455a60c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
-        padding: 6rem 0;
-    }
+    /* Bỏ class .partner-hero cũ, giữ lại các CSS khác */
     .model-card {
         border-radius: 20px; border: none; transition: 0.4s; top: 0;
     }
@@ -18,15 +15,32 @@
     }
 </style>
 
-<div class="partner-hero text-center text-white shadow-sm">
-    <div class="container">
-        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-3 fw-bold tracking-wider">HỢP TÁC DOANH NGHIỆP B2B</span>
-        <h1 class="display-4 fw-bold mb-4">Cùng GSMS Vươn Tầm Phát Triển</h1>
-        <p class="lead opacity-75 mx-auto" style="max-width: 700px;">Trở thành đối tác chiến lược của chuỗi trạm xăng sinh thái hàng đầu. Chúng tôi cung cấp giải pháp nhiên liệu tối ưu và cơ hội kinh doanh sinh lời bền vững.</p>
+<div class="container-fluid p-0 position-relative mb-5 shadow-sm overflow-hidden" style="height: 350px;">
+    <img src="{% static 'images/banner_chinh.jpg' %}" class="w-100 h-100 position-absolute top-0 start-0" style="object-fit: cover; z-index: 1;" alt="Đối tác GSMS">
+    
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(15, 76, 129, 0.85); z-index: 2;"></div>
+    
+    <div class="container h-100 position-relative z-3 d-flex flex-column justify-content-center align-items-center text-center">
+        
+        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill mb-3 fw-bold tracking-wider shadow-sm">HỢP TÁC DOANH NGHIỆP B2B</span>
+        
+        <h1 class="display-4 fw-bold text-white text-uppercase mb-3" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.3); letter-spacing: 2px;">
+            ĐỐI TÁC CHIẾN LƯỢC
+        </h1>
+        
+        <p class="lead text-white opacity-75 mx-auto mb-4" style="max-width: 700px;">
+            Cùng GSMS vươn tầm phát triển. Trở thành đối tác của chuỗi trạm xăng sinh thái hàng đầu.
+        </p>
+
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center mb-0" style="font-size: 1.05rem;">
+                <li class="breadcrumb-item"><a href="{% url 'trang_chu' %}" class="text-white-50 text-decoration-none hover-text-white"><i class="fas fa-home me-1"></i> Trang chủ</a></li>
+                <li class="breadcrumb-item active text-white fw-bold" aria-current="page">Đối tác</li>
+            </ol>
+        </nav>
     </div>
 </div>
-
-<div class="container py-5 mt-4">
+<div class="container py-4">
     <div class="text-center mb-5">
         <h2 class="fw-bold text-primary">Các Mô Hình Hợp Tác</h2>
         <div class="bg-warning mx-auto" style="height: 4px; width: 60px; border-radius: 2px;"></div>
@@ -34,7 +48,7 @@
 
     <div class="row g-5 mt-3">
         <div class="col-md-4">
-            <div class="card model-card h-100 shadow-sm text-center pt-4 px-3 pb-4">
+            <div class="card model-card h-100 shadow-sm text-center pt-4 px-3 pb-4 border border-light">
                 <div class="icon-box-partner text-primary border border-primary border-2"><i class="fas fa-truck-moving"></i></div>
                 <h4 class="fw-bold mb-3">Doanh Nghiệp Vận Tải</h4>
                 <p class="text-muted mb-4">Giải pháp cung cấp thẻ đổ xăng tự động (Fleet Card) cho đội xe logistics, taxi. Công nợ linh hoạt, chiết khấu lên đến 5%, xuất hóa đơn điện tử tự động cuối tháng.</p>
@@ -45,7 +59,7 @@
         <div class="col-md-4">
             <div class="card model-card h-100 shadow text-center pt-4 px-3 pb-4 border border-warning" style="background-color: #fffdf5;">
                 <div class="icon-box-partner text-warning border border-warning border-2"><i class="fas fa-store-alt"></i></div>
-                <span class="badge bg-danger position-absolute top-0 end-0 m-3 rounded-pill">Hot</span>
+                <span class="badge bg-danger position-absolute top-0 end-0 m-3 rounded-pill shadow-sm">Hot</span>
                 <h4 class="fw-bold mb-3">Nhượng Quyền (Franchise)</h4>
                 <p class="text-muted mb-4">Cơ hội cho nhà đầu tư có mặt bằng. GSMS hỗ trợ 100% setup trạm, đào tạo nhân sự, cung cấp hệ thống phần mềm quản lý ERP và cấp giấy phép kinh doanh xăng dầu.</p>
                 <div class="mt-auto"><button class="btn btn-warning text-dark rounded-pill fw-bold w-100 shadow-sm">Tìm Hiểu Quy Trình</button></div>
@@ -53,7 +67,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card model-card h-100 shadow-sm text-center pt-4 px-3 pb-4">
+            <div class="card model-card h-100 shadow-sm text-center pt-4 px-3 pb-4 border border-light">
                 <div class="icon-box-partner text-success border border-success border-2"><i class="fas fa-wallet"></i></div>
                 <h4 class="fw-bold mb-3">Đối Tác Thanh Toán</h4>
                 <p class="text-muted mb-4">Hợp tác cùng các Ngân hàng, Ví điện tử (Momo, VNPay, ZaloPay) tích hợp thanh toán tại trạm, đem lại trải nghiệm không tiền mặt nhanh chóng và tiện lợi cho khách hàng.</p>
@@ -63,48 +77,55 @@
     </div>
 </div>
 
-<div class="container py-5 mb-5">
-    <div class="bg-light rounded-4 shadow-sm p-4 p-md-5">
+<div class="container py-5 mb-5 mt-4">
+    <div class="bg-light rounded-4 shadow-sm p-4 p-md-5 border border-white">
         <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <h3 class="fw-bold text-dark mb-3">Bắt Đầu Câu Chuyện Kinh Doanh Cùng Chúng Tôi</h3>
-                <p class="text-muted mb-4">Hãy để lại thông tin, đội ngũ Phát triển kinh doanh của GSMS Group sẽ liên hệ với bạn trong vòng 24 giờ làm việc.</p>
+            <div class="col-lg-6 mb-4 mb-lg-0 pe-lg-4">
+                <h3 class="fw-bold text-dark mb-3">Bắt Đầu Câu Chuyện Kinh Doanh Cùng GSMS</h3>
+                <p class="text-muted mb-4">Hãy để lại thông tin, đội ngũ Phát triển kinh doanh của chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ làm việc để tư vấn giải pháp phù hợp nhất.</p>
                 <ul class="list-unstyled text-secondary">
-                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Chiết khấu cạnh tranh nhất thị trường.</li>
-                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Hệ thống quản lý minh bạch, Real-time.</li>
-                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Nguồn cung ổn định, cam kết chất lượng sinh thái.</li>
+                    <li class="mb-3 d-flex align-items-center"><i class="fas fa-check-circle text-success me-3 fs-5"></i> Chiết khấu cạnh tranh nhất thị trường.</li>
+                    <li class="mb-3 d-flex align-items-center"><i class="fas fa-check-circle text-success me-3 fs-5"></i> Hệ thống quản lý minh bạch, cập nhật Real-time.</li>
+                    <li class="mb-3 d-flex align-items-center"><i class="fas fa-check-circle text-success me-3 fs-5"></i> Nguồn cung ổn định, cam kết chất lượng sinh thái.</li>
                 </ul>
             </div>
+            
             <div class="col-lg-6">
-                <div class="card border-0 shadow">
-                    <div class="card-body p-4">
+                <div class="card border-0 shadow rounded-4">
+                    <div class="card-body p-4 p-xl-5">
                         <form action="{% url 'gui_yeu_cau_b2b' %}" method="POST">
                             {% csrf_token %}
     
                             <div class="mb-3">
-                                <input type="text" name="ten_cong_ty" class="form-control bg-light" placeholder="Tên Công Ty / Cá Nhân" required>
+                                <label class="form-label text-muted small fw-bold">Doanh nghiệp / Tổ chức <span class="text-danger">*</span></label>
+                                <input type="text" name="ten_cong_ty" class="form-control bg-light py-2 px-3 border-0" placeholder="Nhập tên Công ty hoặc Cá nhân" required>
                             </div>
     
                             <div class="row mb-3">
-                                <div class="col-6">
-                                    <input type="text" name="so_dien_thoai" class="form-control bg-light" placeholder="Số điện thoại" required>
+                                <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <label class="form-label text-muted small fw-bold">Số điện thoại <span class="text-danger">*</span></label>
+                                    <input type="text" name="so_dien_thoai" class="form-control bg-light py-2 px-3 border-0" placeholder="SĐT liên hệ" required>
                                 </div>
-                                <div class="col-6">
-                                    <input type="email" name="email" class="form-control bg-light" placeholder="Email liên hệ">
+                                <div class="col-sm-6">
+                                    <label class="form-label text-muted small fw-bold">Email</label>
+                                    <input type="email" name="email" class="form-control bg-light py-2 px-3 border-0" placeholder="name@company.com">
                                 </div>
                             </div>
     
-                        <div class="mb-3">
-                            <select name="nhu_cau" class="form-control bg-light">
-                                <option value="Tư vấn chung">Nhu cầu của bạn là gì?</option>
-                                <option value="Đổ xăng đội xe B2B">Ký hợp đồng đổ xăng cho đội xe</option>
-                                <option value="Nhượng quyền trạm">Muốn mở trạm xăng nhượng quyền</option>
-                                <option value="Tích hợp thanh toán">Tích hợp thanh toán / Dịch vụ khác</option>
-                            </select>
-                        </div>
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold">Nhu cầu hợp tác <span class="text-danger">*</span></label>
+                                <select name="nhu_cau" class="form-select bg-light py-2 px-3 border-0 cursor-pointer">
+                                    <option value="Tư vấn chung" selected>-- Chọn lĩnh vực bạn quan tâm --</option>
+                                    <option value="Đổ xăng đội xe B2B">Ký hợp đồng đổ xăng cho đội xe B2B</option>
+                                    <option value="Nhượng quyền trạm">Muốn mở trạm xăng nhượng quyền Franchise</option>
+                                    <option value="Tích hợp thanh toán">Tích hợp thanh toán / Dịch vụ khác</option>
+                                </select>
+                            </div>
     
-    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">GỬI YÊU CẦU HỢP TÁC</button>
-</form>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold py-3 rounded-pill shadow-sm">
+                                <i class="fas fa-paper-plane me-2"></i> GỬI YÊU CẦU HỢP TÁC
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

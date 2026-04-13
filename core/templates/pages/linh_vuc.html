@@ -71,7 +71,11 @@
             <div class="content-body text-secondary">
                 <p>Với hệ thống vận hành đạt chuẩn quốc tế, GSMS Group tự hào mang đến quy trình quản lý khép kín từ tổng kho đến từng vòi bơm. Chúng tôi ứng dụng triệt để công nghệ 4.0 vào đo lường, giám sát và điều phối, đảm bảo tính minh bạch và an toàn tuyệt đối trong mọi giao dịch.</p>
                 
-                <div class="bg-light p-4 rounded-4 border-start border-primary border-5 my-5 shadow-sm">
+                <div class="my-5 position-relative text-center">
+                    <img src="{{ img }}" class="img-fluid rounded-4 shadow-sm w-100" alt="{{ title }}" style="max-height: 400px; object-fit: cover;">
+                    <div class="mt-2 text-muted small fst-italic">Hình ảnh minh họa: Hoạt động {{ title }} tại hệ thống GSMS</div>
+                </div>
+                <div class="bg-light p-4 rounded-4 border-start border-primary border-5 my-4 shadow-sm">
                     <h5 class="fw-bold text-dark mb-3"><i class="fas fa-check-circle text-success me-2"></i> Cam Kết Chất Lượng Dịch Vụ</h5>
                     
                     <ul class="list-unstyled mb-0">
@@ -82,7 +86,7 @@
                         </li>
                         {% endfor %}
                     </ul>
-                    </div>
+                </div>
                 
                 <p>Sự hài lòng của khách hàng chính là thước đo thành công lớn nhất của chúng tôi. GSMS không ngừng cải tiến công nghệ và đào tạo đội ngũ nhân sự để mang lại những giá trị vượt trội nhất.</p>
             </div>
@@ -98,15 +102,15 @@
                     </div>
                     
                     <div class="card-body p-4 p-xl-5 bg-white">
-                        <p class="text-muted mb-4 text-center">Để lại thông tin, chuyên viên GSMS sẽ liên hệ tư vấn giải pháp phù hợp nhất cho doanh nghiệp của bạn.</p>
+                        <p class="text-muted mb-4 text-center">Khám phá các mô hình hợp tác B2B, Nhượng quyền (Franchise) và các giải pháp tối ưu cho doanh nghiệp của bạn.</p>
                         
                         <div class="d-flex align-items-center mb-4">
                             <div class="bg-light rounded-circle d-flex justify-content-center align-items-center me-3 text-primary shadow-sm" style="width: 50px; height: 50px;">
                                 <i class="fas fa-phone-alt fa-lg"></i>
                             </div>
                             <div>
-                                <small class="text-muted d-block fw-bold">Hotline Hỗ Trợ</small>
-                                <strong class="fs-4 text-dark">1900 8888</strong>
+                                <small class="text-muted d-block fw-bold">Phòng Phát Triển B2B</small>
+                                <strong class="fs-4 text-dark">1900 8888 <span class="fs-6">(Phím 2)</span></strong>
                             </div>
                         </div>
                         
@@ -115,13 +119,13 @@
                                 <i class="fas fa-envelope fa-lg"></i>
                             </div>
                             <div>
-                                <small class="text-muted d-block fw-bold">Email Phụ Trách</small>
-                                <strong class="fs-6 text-dark">kinhdoanh@gsms.com</strong>
+                                <small class="text-muted d-block fw-bold">Email Dự Án</small>
+                                <strong class="fs-6 text-dark">b2b@gsms.com</strong>
                             </div>
                         </div>
 
-                        <a href="{% url 'lien_he' %}" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-pill btn-hover py-3">
-                            <i class="fas fa-paper-plane me-2"></i> Gửi Yêu Cầu Tư Vấn
+                        <a href="{% url 'doi_tac' %}" class="btn btn-warning text-dark btn-lg w-100 fw-bold shadow-sm rounded-pill btn-hover py-3">
+                            <i class="fas fa-file-signature me-2"></i> Điền Form Hợp Tác B2B
                         </a>
                     </div>
                     

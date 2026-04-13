@@ -1,0 +1,173 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .map-container {
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    }
+    #map { height: 450px; width: 100%; cursor: crosshair; }
+    
+    /* TUYỆT CHIÊU TRỊ BOOTSTRAP LÀM VỠ BẢN ĐỒ */
+    .leaflet-container img {
+        max-width: none !important;
+        max-height: none !important;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold text-dark m-0">
+                    <i class="fas fa-warehouse text-primary me-2"></i> 
+                    {% if kho %}Cập Nhật Kho Tổng / Nhà Cung Cấp{% else %}Thêm Kho Tổng Mới{% endif %}
+                </h3>
+                <a href="{% url 'admin_khos' %}" class="btn btn-outline-secondary fw-bold rounded-pill shadow-sm">
+                    <i class="fas fa-arrow-left me-2"></i> Quay Lại
+                </a>
+            </div>
+
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h5 class="fw-bold text-secondary mb-4 border-bottom pb-2">1. Thông tin Kho / NCC</h5>
+                                
+                                <div class="mb-4">
+                                    <label class="fw-bold mb-2 text-dark">Tên Kho Tổng / NCC <span class="text-danger">*</span></label>
+                                    <input type="text" name="ten_ncc" class="form-control form-control-lg bg-light" placeholder="VD: Tổng Kho Nhà Bè" value="{{ kho.ten_ncc|default:'' }}" required>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="fw-bold mb-2 text-dark">Số Điện Thoại Liên Hệ <span class="text-danger">*</span></label>
+                                    <input type="text" name="sdt" class="form-control bg-light" placeholder="VD: 0909123456" value="{{ kho.sdt|default:'' }}" required>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="fw-bold mb-2 text-dark">Địa Chỉ Chi Tiết <span class="text-danger">*</span></label>
+                                    <textarea name="dia_chi" class="form-control bg-light" rows="2" placeholder="Click vào bản đồ để tự động lấy địa chỉ..." required>{{ kho.dia_chi|default:'' }}</textarea>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1 small text-muted">Vĩ độ (Lat)</label>
+                                        <input type="text" name="latitude" id="lat_input" class="form-control form-control-sm text-center font-monospace" value="{{ kho.latitude|default:'' }}" readonly required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1 small text-muted">Kinh độ (Lng)</label>
+                                        <input type="text" name="longitude" id="lng_input" class="form-control form-control-sm text-center font-monospace" value="{{ kho.longitude|default:'' }}" readonly required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-7">
+                                <h5 class="fw-bold text-secondary mb-4 border-bottom pb-2">
+                                    2. Chọn vị trí trên bản đồ <span class="text-danger">*</span>
+                                </h5>
+                                <p class="small text-primary mb-2"><i class="fas fa-mouse-pointer me-1"></i> Bấm vào bản đồ để xác định tọa độ Kho Tổng.</p>
+                                
+                                <div class="map-container mb-3">
+                                    <div id="map"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted">
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow">
+                                <i class="fas fa-save me-2"></i> LƯU THÔNG TIN KHO
+                            </button>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. LẤY TỌA ĐỘ VÀ TRỊ LỖI DẤU PHẨY CỦA DJANGO
+    var strLat = "{{ kho.latitude|default:'10.7450' }}".replace(',', '.'); // Mặc định ở Võ Văn Kiệt
+    var strLng = "{{ kho.longitude|default:'106.6650' }}".replace(',', '.');
+    
+    var defaultLat = parseFloat(strLat);
+    var defaultLng = parseFloat(strLng);
+    
+    // 2. Khởi tạo bản đồ
+    var map = L.map('map').setView([defaultLat, defaultLng], 13);
+
+    // Đánh thức bản đồ
+    setTimeout(function(){ map.invalidateSize(); }, 300);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+        maxZoom: 19, attribution: '© OpenStreetMap' 
+    }).addTo(map);
+
+    // 3. ĐỔI THÀNH ICON CÁI KHO (WAREHOUSE) CHO KHÁC VỚI TRẠM XĂNG
+    var warehouseIcon = L.icon({ 
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/2821/2821896.png', 
+        iconSize: [45, 45], iconAnchor: [22, 45], popupAnchor: [0, -45] 
+    });
+
+    var marker = null;
+    var latInput = document.querySelector('input[name="latitude"]');
+    var lngInput = document.querySelector('input[name="longitude"]');
+    var diaChiInput = document.querySelector('textarea[name="dia_chi"]');
+
+    // 4. NẾU ĐANG SỬA KHO THÌ CẮM CỜ VỊ TRÍ CŨ
+    {% if kho %}
+        marker = L.marker([defaultLat, defaultLng], {icon: warehouseIcon}).addTo(map)
+                  .bindPopup("<strong class='text-primary'>Vị trí Kho hiện tại</strong>").openPopup();
+    {% endif %}
+
+    // 5. Sự kiện Click ghim tọa độ
+    map.on('click', function(e) {
+        var clickedLat = e.latlng.lat;
+        var clickedLng = e.latlng.lng;
+
+        latInput.value = clickedLat.toFixed(6);
+        lngInput.value = clickedLng.toFixed(6);
+
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng, {icon: warehouseIcon}).addTo(map);
+        }
+        marker.bindPopup("<strong class='text-success'>Đã dời Kho đến đây!</strong>").openPopup();
+
+        // Tự động tìm địa chỉ
+        if(diaChiInput) diaChiInput.value = "Đang kết nối vệ tinh tìm địa chỉ..."; 
+        var url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${clickedLat}&lon=${clickedLng}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.display_name && diaChiInput) {
+                    diaChiInput.value = data.display_name.replace(', Vietnam', '').replace(', Việt Nam', '');
+                } else if(diaChiInput) {
+                    diaChiInput.value = "Không tìm thấy địa chỉ cụ thể. Vui lòng nhập tay.";
+                }
+            })
+            .catch(err => { 
+                if(diaChiInput) diaChiInput.value = "Lỗi đường truyền vệ tinh. Vui lòng nhập tay."; 
+            });
+    });
+});
+</script>
+{% endblock %}

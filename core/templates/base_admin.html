@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Quản Lý Trạm Xăng - Admin Portal</title>
+    <title>GSMS - Hệ Thống Điều Hành Tổng</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,7 +12,8 @@
     <style>
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: #f4f6f9; /* Màu nền xám nhạt chuyên nghiệp của ERP */
+            background-color: #f4f6f9; /* Màu nền xám nhạt chuyên nghiệp */
+            overflow-x: hidden;
         }
         
         /* CSS Tùy chỉnh cho Menu Admin xịn sò */
@@ -37,6 +38,11 @@
         }
         @keyframes blink { 50% { opacity: 0.5; } }
         .blink-animation { animation: blink 1.5s infinite; }
+        
+        /* Chỉnh lại chiều cao để nội dung không bị dính vào Navbar */
+        .main-content-wrapper {
+            min-height: calc(100vh - 60px); 
+        }
     </style>
 </head>
 <body>
@@ -44,8 +50,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark admin-navbar sticky-top w-100">
         <div class="container-fluid px-3">
             <a class="navbar-brand fw-bold text-warning d-flex align-items-center me-3" href="{% url 'admin_dashboard' %}">
-                <i class="fas fa-user-shield fs-4 me-2"></i> 
-                <span class="d-none d-sm-inline" style="letter-spacing: 1px;">ADMIN PORTAL</span>
+                <i class="fas fa-globe-asia fs-4 me-2"></i> 
+                <span class="d-none d-sm-inline" style="letter-spacing: 1px;">GSMS ADMIN</span>
             </a>
             
             <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
@@ -54,59 +60,62 @@
             
             <div class="collapse navbar-collapse" id="adminNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 d-flex flex-wrap align-items-center">
+                    
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}">
-                            <i class="fas fa-tachometer-alt text-light"></i> Dashboard
+                            <i class="fas fa-chart-pie text-light"></i> Tổng Quan
                         </a>
                     </li>
+                    
+                    {% if user.role == 'admin' or user.is_superuser %}
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_import' %}active{% endif %}" href="{% url 'admin_import' %}">
-                            <i class="fas fa-truck-moving text-warning"></i> Quản lý Nhập Hàng
+                            <i class="fas fa-truck-loading text-warning"></i> Điều Phối Kho
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_trams' %}active{% endif %}" href="{% url 'admin_trams' %}">
-                            <i class="fas fa-gas-pump text-info"></i> Quản lý Trạm
+                            <i class="fas fa-store-alt text-info"></i> Quản lý Trạm
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_khos' %}active{% endif %}" href="{% url 'admin_khos' %}">
-                            <i class="fas fa-industry text-danger"></i> Quản lý Kho
+                            <i class="fas fa-industry text-danger"></i> Quản lý NCC
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_nhan_sus' %}active{% endif %}" href="{% url 'admin_nhan_sus' %}">
-                            <i class="fas fa-users-cog text-light"></i> Quản lý Nhân sự
+                            <i class="fas fa-users-cog text-light"></i> Nhân sự
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'quan_ly_gia' %}active{% endif %}" href="{% url 'quan_ly_gia' %}">
-                            <i class="fas fa-tags text-success"></i> Quản lý Giá
+                            <i class="fas fa-tags text-success"></i> Chỉnh Giá
                         </a>
                     </li>
+                    {% endif %}
                     
-                    <li class="nav-item">
-                        <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_tin_tuc' or request.resolver_match.url_name == 'admin_them_tin_tuc' or request.resolver_match.url_name == 'admin_sua_tin_tuc' %}active{% endif %}" href="{% url 'admin_tin_tuc' %}">
-                            <i class="fas fa-newspaper text-white"></i> Quản lý Tin Tức
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-bold" href="{% url 'admin_inbox' %}">
-                            <i class="fas fa-inbox me-2 text-warning"></i> Hộp Thư & Yêu Cầu 
-                            <span class="position-absolute ms-2 p-1 bg-danger border border-light rounded-circle blink-animation"></span>
-                        </a>
-                    </li>
                     <li class="nav-item ms-lg-2 ps-lg-2 border-start border-light border-opacity-25 d-none d-lg-block">
                         <a class="nav-link admin-nav-link opacity-75" href="{% url 'trang_chu' %}">
-                            <i class="fas fa-globe"></i> Xem Trang Khách
+                            <i class="fas fa-external-link-alt"></i> Xem Trang Khách
                         </a>
                     </li>
                 </ul>
                 
-                <div class="d-flex align-items-center bg-dark bg-opacity-25 py-1 px-3 rounded-pill border border-light border-opacity-25 text-nowrap mt-2 mt-lg-0">
-                    <i class="fas fa-user-circle text-white fs-4 me-2"></i>
-                    <span class="text-white me-3 pe-3 border-end border-light border-opacity-25 small">Xin chào, <strong class="text-warning">{{ user.username }}</strong></span>
-                    <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-bold" style="font-size: 0.8rem;">Đăng xuất</a>
+                <div class="d-flex align-items-center gap-3 mt-2 mt-lg-0">
+                    <a href="{% url 'admin_inbox' %}" class="position-relative text-white text-decoration-none">
+                        <i class="fas fa-inbox fs-5 hover-white"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle blink-animation"></span>
+                    </a>
+
+                    <div class="d-flex align-items-center bg-dark bg-opacity-25 py-1 px-3 rounded-pill border border-light border-opacity-25 text-nowrap">
+                        <i class="fas fa-user-circle text-white fs-5 me-2"></i>
+                        <span class="text-white me-3 pe-3 border-end border-light border-opacity-25 small">
+                            {{ user.full_name|default:user.username }} 
+                            <span class="badge {% if user.role == 'admin' %}bg-danger{% else %}bg-info text-dark{% endif %} ms-1">{{ user.get_role_display }}</span>
+                        </span>
+                        <a href="{% url 'dang_xuat' %}" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-bold" style="font-size: 0.8rem;">Đăng xuất</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,7 +135,9 @@
     </div>
     {% endif %}
 
-    {% block content %}{% endblock %}
+    <div class="main-content-wrapper">
+        {% block content %}{% endblock %}
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     

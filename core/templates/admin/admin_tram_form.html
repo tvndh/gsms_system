@@ -1,0 +1,197 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    .map-container {
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    }
+    #map { height: 400px; width: 100%; cursor: crosshair; }
+    
+    /* 2. TUYỆT CHIÊU TRỊ BOOTSTRAP LÀM VỠ BẢN ĐỒ */
+    .leaflet-container img {
+        max-width: none !important;
+        max-height: none !important;
+    }
+</style>
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold text-dark m-0">
+                    <i class="fas fa-gas-pump text-primary me-2"></i> 
+                    {% if tram %}Cập Nhật Trạm Xăng{% else %}Thêm Trạm Xăng Mới{% endif %}
+                </h3>
+                <a href="{% url 'admin_trams' %}" class="btn btn-outline-secondary fw-bold rounded-pill shadow-sm">
+                    <i class="fas fa-arrow-left me-2"></i> Quay Lại
+                </a>
+            </div>
+
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h5 class="fw-bold text-secondary mb-4 border-bottom pb-2">1. Thông tin chung</h5>
+                                
+                                <div class="mb-4">
+                                    <label class="fw-bold mb-2 text-dark">Tên Trạm Xăng <span class="text-danger">*</span></label>
+                                    <input type="text" name="ten_tram" class="form-control form-control-lg bg-light" placeholder="VD: GSMS 01 - Bến Thành" value="{{ tram.ten_tram|default:'' }}" required>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="fw-bold mb-2 text-dark">Địa Chỉ Chi Tiết <span class="text-danger">*</span></label>
+                                    <textarea name="dia_chi" class="form-control bg-light" rows="3" placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/TP..." required>{{ tram.dia_chi|default:'' }}</textarea>
+                                </div>
+
+                                {% if not tram %}
+                                <div class="mb-4 p-3 bg-light border rounded-3">
+                                    <label class="fw-bold mb-2 text-primary"><i class="fas fa-database me-1"></i> Khởi tạo bồn chứa tự động</label>
+                                    <p class="small text-muted mb-2">Chọn các loại nhiên liệu Trạm sẽ bán, hệ thống sẽ tự sinh bồn chứa và tài khoản quản lý.</p>
+                                    
+                                    <div class="d-flex flex-wrap gap-3 mt-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="A95" id="chkA95" checked>
+                                            <label class="form-check-label fw-bold text-danger" for="chkA95">Xăng A95</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="E5" id="chkE5" checked>
+                                            <label class="form-check-label fw-bold text-success" for="chkE5">Xăng E5</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="E10" id="chkE10">
+                                            <label class="form-check-label fw-bold text-success" for="chkE10">Xăng Sinh Học E10</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="DO" id="chkDO" checked>
+                                            <label class="form-check-label fw-bold text-warning" for="chkDO">Dầu DO</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <div class="row mb-4">
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1 small text-muted">Vĩ độ (Latitude)</label>
+                                        <input type="text" name="latitude" id="lat_input" class="form-control form-control-sm text-center font-monospace" value="{{ tram.latitude|default:'' }}" readonly required>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="fw-bold mb-1 small text-muted">Kinh độ (Longitude)</label>
+                                        <input type="text" name="longitude" id="lng_input" class="form-control form-control-sm text-center font-monospace" value="{{ tram.longitude|default:'' }}" readonly required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-7">
+                                <h5 class="fw-bold text-secondary mb-4 border-bottom pb-2">
+                                    2. Chọn vị trí trên bản đồ <span class="text-danger">*</span>
+                                </h5>
+                                <p class="small text-primary mb-2"><i class="fas fa-mouse-pointer me-1"></i> Bấm vào bản đồ để thả ghim (Marker) xác định tọa độ của trạm.</p>
+                                
+                                <div class="map-container mb-3">
+                                    <div id="map"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted">
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow">
+                                <i class="fas fa-save me-2"></i> LƯU THÔNG TIN TRẠM
+                            </button>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // 1. TUYỆT CHIÊU TRỊ LỖI DẤU PHẨY CỦA DJANGO:
+    // Lấy giá trị dưới dạng chuỗi (thêm ngoặc kép), sau đó đổi dấu phẩy thành chấm, rồi ép kiểu số thực
+    var strLat = "{{ tram.latitude|default:'10.9150' }}".replace(',', '.');
+    var strLng = "{{ tram.longitude|default:'106.7920' }}".replace(',', '.');
+    
+    var defaultLat = parseFloat(strLat);
+    var defaultLng = parseFloat(strLng);
+    
+    // 2. Khởi tạo bản đồ
+    var map = L.map('map').setView([defaultLat, defaultLng], 14);
+
+    // Đánh thức bản đồ để không bị lỗi vỡ ngói của Bootstrap
+    setTimeout(function(){ map.invalidateSize(); }, 300);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+        maxZoom: 19, attribution: '© OpenStreetMap' 
+    }).addTo(map);
+
+    // 3. Icon Trạm Xăng
+    var stationIcon = L.icon({ 
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448636.png', 
+        iconSize: [40, 40], iconAnchor: [20, 40], popupAnchor: [0, -40] 
+    });
+
+    var marker = null;
+    var latInput = document.querySelector('input[name="latitude"]');
+    var lngInput = document.querySelector('input[name="longitude"]');
+    var diaChiInput = document.querySelector('textarea[name="dia_chi"]');
+
+    // 4. KIỂM TRA: NẾU ĐANG SỬA TRẠM THÌ CẮM CỜ Ở VỊ TRÍ HIỆN TẠI
+    {% if tram %}
+        marker = L.marker([defaultLat, defaultLng], {icon: stationIcon}).addTo(map)
+                  .bindPopup("<strong class='text-primary'>Vị trí hiện tại của Trạm</strong>").openPopup();
+    {% endif %}
+
+    // 5. Sự kiện Click ghim tọa độ
+    map.on('click', function(e) {
+        var clickedLat = e.latlng.lat;
+        var clickedLng = e.latlng.lng;
+
+        // Điền tọa độ
+        latInput.value = clickedLat.toFixed(6);
+        lngInput.value = clickedLng.toFixed(6);
+
+        // Đặt marker
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng, {icon: stationIcon}).addTo(map);
+        }
+        marker.bindPopup("<strong class='text-success'>Đã dời vị trí đến đây!</strong>").openPopup();
+
+        // Tự động tìm địa chỉ (Reverse Geocoding)
+        if(diaChiInput) diaChiInput.value = "Đang kết nối vệ tinh tìm địa chỉ..."; 
+        var url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${clickedLat}&lon=${clickedLng}`;
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.display_name && diaChiInput) {
+                    diaChiInput.value = data.display_name.replace(', Vietnam', '').replace(', Việt Nam', '');
+                } else if(diaChiInput) {
+                    diaChiInput.value = "Không tìm thấy địa chỉ cụ thể. Vui lòng nhập tay.";
+                }
+            })
+            .catch(err => { 
+                if(diaChiInput) diaChiInput.value = "Lỗi đường truyền vệ tinh. Vui lòng nhập tay."; 
+            });
+    });
+});
+</script>
+{% endblock %}
