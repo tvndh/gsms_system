@@ -1,63 +1,136 @@
 {% extends 'base_admin.html' %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary fw-bold"><i class="fas fa-warehouse"></i> QUẢN LÝ KHO TỔNG / NHÀ CUNG CẤP</h2>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
+<div class="container-fluid py-4 px-lg-5">
+    
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
-            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary fw-bold me-2">
-                <i class="fas fa-arrow-left"></i> Về Bảng Điều Khiển
+            <h2 class="text-primary fw-bold mb-1"><i class="fas fa-warehouse"></i> QUẢN LÝ KHO TỔNG / ĐỐI TÁC</h2>
+            <p class="text-muted mb-0">Quản lý nguồn cung cấp nhiên liệu và tọa độ lấy hàng</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary fw-bold shadow-sm d-flex align-items-center">
+                <i class="fas fa-arrow-left me-2"></i> Bảng Điều Khiển
             </a>
-            <a href="{% url 'admin_them_kho' %}" class="btn btn-success fw-bold shadow-sm">
-                <i class="fas fa-plus-circle"></i> Thêm Kho Mới
+            <a href="{% url 'admin_them_kho' %}" class="btn btn-success fw-bold shadow-sm d-flex align-items-center">
+                <i class="fas fa-plus-circle me-2"></i> Thêm Kho Mới
             </a>
         </div>
     </div>
 
-    <div class="card shadow border-0 mb-5 rounded-4">
-        <div class="card-header bg-dark text-white rounded-top-4">
-            <h5 class="mb-0 fw-bold py-1"><i class="fas fa-list"></i> Danh sách Kho Tổng đang hoạt động</h5>
+    <div class="card shadow-sm border-0 mb-5 rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white border-0 py-3">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-warning"></i> Danh sách Kho Tổng đang hoạt động</h5>
         </div>
-        <div class="card-body p-0">
-            <table class="table table-hover table-striped mb-0">
-                <thead class="table-light text-center align-middle">
+        
+        <div class="card-body p-4">
+            <table id="khoTable" class="table table-hover table-striped mb-0 w-100">
+                <thead class="table-light text-center align-middle" style="border-bottom: 2px solid #dee2e6;">
                     <tr>
-                        <th>STT</th>
-                        <th>Tên Kho / Nhà Cung Cấp</th>
-                        <th>Số Điện Thoại</th>
-                        <th>Địa Chỉ</th>
-                        <th>Tọa độ (Lat, Lng)</th>
-                        <th>Thao tác</th>
+                        <th width="5%" class="py-3 text-center">STT</th>
+                        <th width="20%">Tên Kho / NCC</th>
+                        <th width="15%">Số Điện Thoại</th>
+                        <th width="25%">Địa Chỉ</th>
+                        <th width="20%" class="text-center">Tọa độ (Lat, Lng)</th>
+                        <th width="15%" class="text-center">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody class="text-center align-middle">
+                <tbody class="align-middle">
                     {% for kho in ds_kho %}
                     <tr>
-                        <td class="fw-bold text-muted">{{ forloop.counter }}</td>
-                        <td class="fw-bold text-primary text-start">{{ kho.ten_ncc }}</td>
-                        <td class="fw-bold text-success">{{ kho.sdt }}</td>
-                        <td class="text-start">{{ kho.dia_chi }}</td>
-                        <td class="small text-muted font-monospace">{{ kho.latitude|floatformat:4 }}, {{ kho.longitude|floatformat:4 }}</td>
-                        <td>
-                            <a href="{% url 'admin_sua_kho' kho.id %}" class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-3">
-                                <i class="fas fa-edit"></i> Sửa
-                            </a>
-                            <a href="{% url 'admin_xoa_kho' kho.id %}" class="btn btn-sm btn-outline-danger shadow-sm rounded-pill px-3 ms-1" onclick="return confirm('Bạn có chắc chắn muốn xóa Kho: {{ kho.ten_ncc }}?');">
-                                <i class="fas fa-trash"></i> Xóa
-                            </a>
+                        <td class="fw-bold text-muted text-center">{{ forloop.counter }}</td>
+                        <td class="fw-bold text-primary text-start ps-3">
+                            <i class="fas fa-industry text-secondary me-1"></i> {{ kho.ten_ncc }}
+                        </td>
+                        <td class="fw-bold text-success text-center">{{ kho.sdt|default:"<span class='text-muted fw-normal'>-</span>"|safe }}</td>
+                        <td class="text-start pe-3">
+                            <span class="d-inline-block text-truncate" style="max-width: 250px;" title="{{ kho.dia_chi }}">{{ kho.dia_chi }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border font-monospace shadow-sm">
+                                {{ kho.latitude|floatformat:4 }}, {{ kho.longitude|floatformat:4 }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <a href="{% url 'admin_sua_kho' kho.id %}" class="btn btn-sm btn-outline-primary shadow-sm px-3">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </a>
+                                <a href="{% url 'admin_xoa_kho' kho.id %}" class="btn btn-sm btn-outline-danger shadow-sm px-3" onclick="return confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa Kho: {{ kho.ten_ncc }}?\nViệc này có thể ảnh hưởng đến lịch sử các Phiếu nhập hàng trước đây!');">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-muted py-5 fs-5">
-                            <i class="fas fa-box-open mb-3 fs-1 d-block text-secondary"></i>
-                            Chưa có Kho / Nhà Cung Cấp nào trong hệ thống.
-                        </td>
-                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<style>
+    /* Làm đẹp hiệu ứng trỏ chuột vào dòng của bảng */
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+        transition: background-color 0.2s ease;
+    }
+    
+    /* Chỉnh lại CSS cho DataTables */
+    div.dataTables_wrapper div.dataTables_filter input {
+        border-radius: 20px;
+        padding: 5px 15px;
+        border: 1px solid #ced4da;
+    }
+    div.dataTables_wrapper div.dataTables_length select {
+        border-radius: 8px;
+        padding: 5px;
+    }
+    .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Kích hoạt DataTables cho bảng Kho
+    $('#khoTable').DataTable({
+        "language": {
+            "sProcessing":   "Đang xử lý...",
+            "sLengthMenu":   "Xem _MENU_ mục",
+            "sZeroRecords":  "Không tìm thấy dòng nào phù hợp",
+            "sInfo":         "Đang xem _START_ đến _END_ trong tổng số _TOTAL_ mục",
+            "sInfoEmpty":    "Đang xem 0 đến 0 trong tổng số 0 mục",
+            "sInfoFiltered": "(được lọc từ _MAX_ mục)",
+            "sInfoPostFix":  "",
+            "sSearch":       "<i class='fas fa-search text-muted'></i> Tìm kiếm:",
+            "sUrl":          "",
+            "oPaginate": {
+                "sFirst":    "Đầu",
+                "sPrevious": "Trước",
+                "sNext":     "Tiếp",
+                "sLast":     "Cuối"
+            }
+        },
+        "pageLength": 10,           
+        "lengthMenu": [5, 10, 25, 50], 
+        "ordering": true,           
+        "order": [[0, "asc"]],      
+        "columnDefs": [
+            { "orderable": false, "targets": 5 } // Tắt tính năng sắp xếp ở cột "Thao tác"
+        ]
+    });
+});
+</script>
 {% endblock %}

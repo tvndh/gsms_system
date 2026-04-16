@@ -13,26 +13,25 @@
     /* =======================================================
        1. HIỆU ỨNG CHO THANH MENU CHÍNH & LOGO
        ======================================================= */
-    /* Xử lý Logo nền trắng thành Icon App xịn xò */
     .brand-logo-img {
-        background-color: #ffffff; /* Ép nền trắng tinh */
-        padding: 4px 6px;          /* Tạo khoảng không quanh logo */
-        border-radius: 8px;        /* Bo góc mềm mại */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Đổ bóng nhẹ cho nổi bật */
+        background-color: #ffffff; 
+        padding: 4px 6px;          
+        border-radius: 8px;        
+        box-shadow: 0 2px 5px rgba(0,0,0,0.15); 
         transition: transform 0.3s ease;
     }
     .navbar-brand:hover .brand-logo-img {
-        transform: scale(1.05);    /* Hover chuột vào logo sẽ phóng to nhẹ */
+        transform: scale(1.05);    
     }
     .brand-text-name {
-        letter-spacing: 1.2px;     /* Kéo giãn chữ GSMS GROUP cho sang */
+        letter-spacing: 1.2px;     
         text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
 
     .navbar-nav .nav-link {
         transition: all 0.3s ease;
         border-radius: 8px;      
-        padding: 8px 12px !important; /* Tăng padding để nút bấm to rõ hơn */
+        padding: 8px 12px !important; 
         margin: 0 3px;
         font-weight: 600;       
         font-size: 0.95rem;           
@@ -42,7 +41,7 @@
     .navbar-nav .nav-link:hover, 
     .navbar-nav .nav-link.active {
         color: #ffffff !important;       
-        background-color: rgba(255, 255, 255, 0.15); /* Đổi màu hover cho sang, không dùng màu xanh trùng nền */
+        background-color: rgba(255, 255, 255, 0.15); 
         font-weight: 800;                
         transform: translateY(-2px);     
     }
@@ -60,7 +59,7 @@
         overflow: hidden; 
         padding: 8px;
         z-index: 1050; 
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* Đổ bóng to hơn cho menu con */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
         border: 1px solid rgba(0,0,0,0.05);
     }
     .dropdown-item {
@@ -69,7 +68,7 @@
         border-radius: 6px;
         margin-bottom: 2px;
         font-size: 0.95rem;
-        padding: 8px 15px; /* Tăng không gian click */
+        padding: 8px 15px; 
     }
     
     .dropdown-item:hover, 
@@ -77,7 +76,7 @@
         color: #ffffff !important;       
         background-color: #0d6efd;       
         font-weight: 700;                
-        padding-left: 20px !important;   /* Thụt lề khi hover tạo cảm giác chuyển động */
+        padding-left: 20px !important;   
         box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
     }
 
@@ -160,7 +159,9 @@
     </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100 bg-light"> {# --- ĐÂY LÀ BLOCK NAVBAR --- #}
+<body class="d-flex flex-column min-vh-100 bg-light">
+    
+    {# --- ĐÂY LÀ BLOCK NAVBAR --- #}
     {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow py-2">
         <div class="container">
@@ -172,7 +173,8 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto align-items-lg-center"> <li class="nav-item">
+                <ul class="navbar-nav me-auto align-items-lg-center"> 
+                    <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'trang_chu' %}active text-white fw-bold{% else %}text-white-50{% endif %}" href="{% url 'trang_chu' %}">Trang chủ</a>
                     </li>
                     
@@ -197,21 +199,17 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'tin_tuc' %}active text-white fw-bold{% else %}text-white-50{% endif %}" href="{% url 'tin_tuc' %}">Tin tức</a>
                     </li>
-                    
+
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'san_pham' %}active text-white fw-bold{% else %}text-white-50{% endif %}" href="{% url 'san_pham' %}">Sản phẩm</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'doi_tac' %}active text-white fw-bold{% else %}text-white-50{% endif %}" href="{% url 'doi_tac' %}">
-                            <i class="fas fa-handshake me-1"></i> Đối Tác
-                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'doi_tac' %}active text-white fw-bold{% else %}text-white-50{% endif %}" href="{% url 'doi_tac' %}">Đối tác</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'tuyen_dung' %}active text-white fw-bold{% else %}text-white-50{% endif %}" href="{% url 'tuyen_dung' %}">
-                            <i class="fas fa-user-tie me-1"></i> Tuyển Dụng
-                        </a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'tuyen_dung' %}active text-white fw-bold{% else %}text-white-50{% endif %}" href="{% url 'tuyen_dung' %}">Tuyển dụng</a>
                     </li>
 
                     <li class="nav-item">
@@ -223,13 +221,13 @@
                     {% if user.is_authenticated %}
                     <span class="text-white-50 me-3 d-none d-lg-block border-end pe-3">Hi, <strong class="text-white">{{ user.username }}</strong></span>
     
-                    {% if user.role == 'admin' or user.is_superuser %}
+                    {% if user.role == 'admin' or user.is_superuser or user.role == 'ke_toan' %}
                     <a href="{% url 'admin_dashboard' %}" class="btn btn-warning btn-sm fw-bold me-2 rounded-pill px-3 shadow-sm">
                         <i class="fas fa-user-shield me-1"></i> Admin Panel
                     </a>
                     {% else %}
-                    <a href="{% url 'staff_pos' %}" class="btn btn-success btn-sm fw-bold me-2 rounded-pill px-3 shadow-sm">
-                        <i class="fas fa-cash-register me-1"></i> Máy POS
+                    <a href="{% url 'pos_xang' %}" class="btn btn-success btn-sm fw-bold me-2 rounded-pill px-3 shadow-sm">
+                        <i class="fas fa-gas-pump me-1"></i> Bơm Xăng
                     </a>
                     {% endif %}
     
@@ -276,9 +274,9 @@
                         Tự hào là đơn vị tiên phong trong lĩnh vực quản lý và phân phối nhiên liệu sạch tại Việt Nam. Chúng tôi cam kết mang đến giải pháp năng lượng tối ưu, an toàn và bền vững cho mọi doanh nghiệp.
                     </p>
                     <div class="d-flex">
-                        <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
-                        <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.facebook.com/profile.php?id=61569266451126" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.youtube.com/channel/UCKmut631MC4F0tLsKS4X3qw" class="social-btn"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.linkedin.com/in/gsms-new-084704390/" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
 
@@ -298,7 +296,11 @@
                     <ul class="list-unstyled mb-0">
                         <li><a href="{% url 'trang_chu' %}" class="footer-link">Trang chủ</a></li>
                         <li><a href="{% url 'gioi_thieu' %}" class="footer-link">Về chúng tôi</a></li>
-                        <li><a href="{% url 'san_pham' %}" class="footer-link">Sản phẩm</a></li>
+                        
+                        <li><a href="{% url 'san_pham' %}" class="footer-link">Sản phẩm & Dịch vụ</a></li>
+                        <li><a href="{% url 'doi_tac' %}" class="footer-link">Hợp tác kinh doanh</a></li>
+                        <li><a href="{% url 'tuyen_dung' %}" class="footer-link">Tuyển dụng</a></li>
+                        
                         <li><a href="{% url 'tin_tuc' %}" class="footer-link">Tin tức hoạt động</a></li>
                         <li><a href="{% url 'lien_he' %}" class="footer-link">Liên hệ</a></li>
                     </ul>

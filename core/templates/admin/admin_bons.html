@@ -1,0 +1,216 @@
+{% extends 'base_admin.html' %}
+{% load humanize %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
+<div class="container-fluid py-4 px-lg-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold mb-0"><i class="fas fa-database"></i> QUẢN LÝ BỒN CHỨA</h2>
+        <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#bonModal">
+            <i class="fas fa-plus-circle me-1"></i> Thêm Bồn Chứa Mới
+        </button>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-list me-2"></i> Danh Sách Bồn Chứa Toàn Hệ Thống</h6>
+        </div>
+        
+        <div class="card-body p-4">
+            <table id="bonTable" class="table table-hover align-middle mb-0 w-100">
+                <thead class="table-light small text-uppercase text-center">
+                    <tr>
+                        <th width="5%" class="text-center">STT</th>
+                        <th class="text-start">Tên Bồn</th>
+                        <th>Trực thuộc Trạm</th>
+                        <th>Loại Nhiên Liệu</th>
+                        <th width="25%">Tình trạng Tồn kho</th>
+                        <th class="text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    {% for bon in ds_bon %}
+                    <tr>
+                        <td class="text-muted fw-bold text-center">{{ forloop.counter }}</td>
+                        <td class="text-start fw-bold text-primary">
+                            {{ bon.ten_bon }}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary"><i class="fas fa-store-alt me-1"></i> {{ bon.tram.ten_tram }}</span>
+                        </td>
+                        <td>
+                            <span class="badge {% if bon.loai_nhien_lieu == 'A95' %}bg-success{% elif bon.loai_nhien_lieu == 'E5' %}bg-info text-dark{% elif bon.loai_nhien_lieu == 'E10' %}bg-primary{% else %}bg-dark{% endif %}">
+                                {{ bon.get_loai_nhien_lieu_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="fw-bold text-dark">{{ bon.muc_hien_tai|floatformat:0|intcomma }} Lít</span>
+                                <span class="text-muted">{{ bon.suc_chua_toi_da|floatformat:0|intcomma }} Lít</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar {% if bon.phan_tram < 20 %}bg-danger progress-bar-striped progress-bar-animated{% elif bon.phan_tram > 80 %}bg-success{% else %}bg-primary{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ bon.phan_tram }}%;" 
+                                     aria-valuenow="{{ bon.phan_tram }}" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-1">{{ bon.phan_tram }}% công suất</small>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary fw-bold mb-1" 
+                                    onclick="moModalSuaBon('{{ bon.id }}', '{{ bon.tram.id }}', '{{ bon.ten_bon|escapejs }}', '{{ bon.loai_nhien_lieu }}', '{{ bon.suc_chua_toi_da|floatformat:0 }}')">
+                                <i class="fas fa-edit me-1"></i> Sửa
+                            </button>
+                            <a href="{% url 'admin_xoa_bon' bon.id %}" class="btn btn-sm btn-outline-danger fw-bold mb-1" 
+                               onclick="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa {{ bon.ten_bon }}? Dữ liệu tồn kho sẽ bị mất vĩnh viễn!');">
+                                <i class="fas fa-trash me-1"></i> Xóa
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bonModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="POST" action="{% url 'admin_luu_bon' %}" id="formBon">
+                {% csrf_token %}
+                <input type="hidden" name="bon_id" id="modal_bon_id" value="">
+                
+                <div class="modal-header bg-primary text-white rounded-top-4 py-3">
+                    <h5 class="modal-title fw-bold" id="modal_title"><i class="fas fa-plus-circle text-warning me-2"></i> THÊM BỒN CHỨA MỚI</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body p-4 bg-light">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Tên bồn chứa <span class="text-danger">*</span></label>
+                        <input type="text" name="ten_bon" id="modal_ten_bon" class="form-control shadow-sm border-primary" required placeholder="VD: Bồn A95 - Số 1">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Trực thuộc Trạm xăng <span class="text-danger">*</span></label>
+                        <select name="tram_id" id="modal_tram_id" class="form-select border-primary shadow-sm" required>
+                            <option value="">-- Chọn Trạm xăng --</option>
+                            {% for tram in ds_tram %}
+                                <option value="{{ tram.id }}">{{ tram.ten_tram }} - {{ tram.dia_chi }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">Loại Nhiên Liệu <span class="text-danger">*</span></label>
+                            <select name="loai_nhien_lieu" id="modal_loai_nhien_lieu" class="form-select border-primary shadow-sm" required>
+                                <option value="A95">Xăng RON 95</option>
+                                <option value="E5">Xăng Sinh học E5</option>
+                                <option value="E10">Xăng Sinh học E10</option>
+                                <option value="DO">Dầu DO</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">Sức chứa tối đa (Lít) <span class="text-danger">*</span></label>
+                            <input type="number" name="suc_chua_toi_da" id="modal_suc_chua_toi_da" class="form-control text-danger fw-bold shadow-sm" required min="1">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer bg-white border-0 py-3 rounded-bottom-4">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm fs-5" id="modal_btn_submit">
+                        <i class="fas fa-save me-2"></i> LƯU BỒN CHỨA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS Tùy chỉnh cho DataTables */
+    div.dataTables_wrapper div.dataTables_filter input {
+        border-radius: 20px;
+        padding: 5px 15px;
+        border: 1px solid #ced4da;
+    }
+    div.dataTables_wrapper div.dataTables_length select {
+        border-radius: 8px;
+        padding: 5px;
+    }
+    .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    // Xử lý mở Modal Sửa
+    function moModalSuaBon(id, tramId, tenBon, loaiNhienLieu, sucChua) {
+        document.getElementById('modal_title').innerHTML = '<i class="fas fa-edit text-warning me-2"></i> CẬP NHẬT BỒN CHỨA';
+        document.getElementById('modal_bon_id').value = id;
+        document.getElementById('modal_tram_id').value = tramId;
+        document.getElementById('modal_ten_bon').value = tenBon;
+        document.getElementById('modal_loai_nhien_lieu').value = loaiNhienLieu;
+        document.getElementById('modal_suc_chua_toi_da').value = sucChua;
+        
+        var btn = document.getElementById('modal_btn_submit');
+        btn.innerHTML = '<i class="fas fa-check-circle me-2"></i> LƯU THAY ĐỔI';
+        
+        var myModal = new bootstrap.Modal(document.getElementById('bonModal'));
+        myModal.show();
+    }
+
+    // Xử lý Reset Modal khi đóng
+    document.getElementById('bonModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('formBon').reset();
+        document.getElementById('modal_bon_id').value = '';
+        document.getElementById('modal_title').innerHTML = '<i class="fas fa-plus-circle text-warning me-2"></i> THÊM BỒN CHỨA MỚI';
+        
+        var btn = document.getElementById('modal_btn_submit');
+        btn.innerHTML = '<i class="fas fa-save me-2"></i> LƯU BỒN CHỨA';
+    });
+
+    // KÍCH HOẠT DATATABLES
+    $(document).ready(function() {
+        $('#bonTable').DataTable({
+            "language": {
+                "sProcessing":   "Đang xử lý...",
+                "sLengthMenu":   "Xem _MENU_ mục",
+                "sZeroRecords":  "Không tìm thấy dòng nào phù hợp",
+                "sInfo":         "Đang xem _START_ đến _END_ trong tổng số _TOTAL_ mục",
+                "sInfoEmpty":    "Đang xem 0 đến 0 trong tổng số 0 mục",
+                "sInfoFiltered": "(được lọc từ _MAX_ mục)",
+                "sInfoPostFix":  "",
+                "sSearch":       "<i class='fas fa-search text-muted'></i> Tìm kiếm:",
+                "sUrl":          "",
+                "oPaginate": {
+                    "sFirst":    "Đầu",
+                    "sPrevious": "Trước",
+                    "sNext":     "Tiếp",
+                    "sLast":     "Cuối"
+                }
+            },
+            "pageLength": 10,           
+            "lengthMenu": [5, 10, 25, 50, 100], 
+            "ordering": true,           
+            "order": [[0, "asc"]],      
+            "columnDefs": [
+                { "orderable": false, "targets": 5 } // Tắt sắp xếp ở cột "Hành động" (cột cuối cùng)
+            ]
+        });
+    });
+</script>
+{% endblock %}

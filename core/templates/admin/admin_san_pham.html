@@ -1,0 +1,241 @@
+{% extends 'base_admin.html' %}
+{% load humanize %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
+<div class="container-fluid py-4 px-lg-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold mb-0"><i class="fas fa-boxes"></i> QUẢN LÝ CATALOG TRƯNG BÀY</h2>
+        <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#sanPhamModal">
+            <i class="fas fa-plus-circle me-1"></i> Thêm Sản Phẩm / Dịch Vụ
+        </button>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-3">
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-header bg-dark text-white py-3">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-folder-open me-2"></i> Nhóm Phân Loại</h6>
+                </div>
+                <div class="card-body p-3">
+                    <form method="POST" action="{% url 'admin_luu_danh_muc' %}" class="mb-3 d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="text" name="ten_danh_muc" class="form-control form-control-sm border-primary" placeholder="Tên nhóm mới..." required>
+                        <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i></button>
+                    </form>
+                    
+                    <div class="list-group list-group-flush border rounded shadow-sm">
+                        {% for dm in ds_danh_muc %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <span class="small fw-bold">{{ dm.ten_dm }}</span>
+                                <a href="{% url 'admin_xoa_danh_muc' dm.id %}" class="text-danger" onclick="return confirm('Xóa danh mục này?');"><i class="fas fa-trash-alt fa-xs"></i></a>
+                            </div>
+                        {% empty %}
+                            <div class="list-group-item text-muted small text-center py-3">Chưa có danh mục nào.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-9">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-list me-2"></i> Danh Sách Hàng Hóa & Dịch Vụ</h6>
+                </div>
+                
+                <div class="card-body p-4">
+                    <table id="spTable" class="table table-hover align-middle mb-0 w-100">
+                        <thead class="table-light small text-uppercase text-center">
+                            <tr>
+                                <th width="10%" class="text-center">Ảnh</th>
+                                <th class="text-start">Tên SP / Dịch vụ</th>
+                                <th>Mô tả</th>
+                                <th>Giá Tham Khảo</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            {% for sp in ds_sp %}
+                            <tr>
+                                <td>
+                                    {% if sp.anh_sp %}
+                                        <img src="{{ sp.anh_sp.url }}" class="rounded shadow-sm border" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <i class="fas fa-image fs-3 text-muted opacity-25"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-start">
+                                    <strong class="text-primary">{{ sp.ten_sp }}</strong><br>
+                                    <span class="badge bg-secondary">{{ sp.danh_muc.ten_dm }}</span>
+                                </td>
+                                <td>
+                                    <span class="small text-muted text-truncate d-inline-block" style="max-width: 150px;">
+                                        {{ sp.mo_ta|default:"-" }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-danger" data-sort="{{ sp.gia_tham_khao }}">
+                                    {{ sp.gia_tham_khao|floatformat:0|intcomma }} đ
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary fw-bold mb-1" 
+                                            onclick="moModalSuaSP('{{ sp.id }}', '{{ sp.danh_muc.id }}', '{{ sp.ten_sp|escapejs }}', '{{ sp.gia_tham_khao|floatformat:0 }}', '{{ sp.mo_ta|escapejs }}')">
+                                        <i class="fas fa-edit me-1"></i> Sửa
+                                    </button>
+                                    <a href="{% url 'admin_xoa_san_pham' sp.id %}" class="btn btn-sm btn-outline-danger fw-bold mb-1" onclick="return confirm('Chắc chắn xóa {{ sp.ten_sp }}?');">
+                                        <i class="fas fa-trash me-1"></i> Xóa
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sanPhamModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="POST" action="{% url 'admin_luu_san_pham' %}" id="formSanPham" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="sp_id" id="modal_sp_id" value="">
+                
+                <div class="modal-header bg-primary text-white rounded-top-4 py-3">
+                    <h5 class="modal-title fw-bold" id="modal_title"><i class="fas fa-plus-circle text-warning me-2"></i> THÊM VÀO CATALOG</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body p-4 bg-light">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Tên Sản Phẩm / Dịch vụ <span class="text-danger">*</span></label>
+                        <input type="text" name="ten_sp" id="modal_ten_sp" class="form-control shadow-sm border-primary" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Thuộc nhóm danh mục <span class="text-danger">*</span></label>
+                        <select name="danh_muc_id" id="modal_danh_muc" class="form-select border-primary shadow-sm" required>
+                            <option value="">-- Chọn nhóm --</option>
+                            {% for dm in ds_danh_muc %}
+                                <option value="{{ dm.id }}">{{ dm.ten_dm }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Giá tham khảo (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" name="gia_tham_khao" id="modal_gia_tham_khao" class="form-control text-danger fw-bold shadow-sm" required min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Mô tả đặc tính</label>
+                        <textarea name="mo_ta" id="modal_mo_ta" class="form-control shadow-sm" rows="3" placeholder="Ghi chú thêm về mặt hàng/dịch vụ..."></textarea>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold text-dark">Hình ảnh minh họa (Tùy chọn)</label>
+                        <input type="file" name="anh_sp" class="form-control shadow-sm border-secondary" accept="image/*">
+                        <small class="text-muted d-block mt-1 fst-italic"><i class="fas fa-info-circle"></i> Bỏ trống nếu không muốn đổi ảnh hiện tại.</small>
+                    </div>
+                </div>
+                
+                <div class="modal-footer bg-white border-0 py-3 rounded-bottom-4">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm fs-5" id="modal_btn_submit">
+                        <i class="fas fa-save me-2"></i> LƯU THÔNG TIN
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Làm đẹp hiệu ứng trỏ chuột vào dòng của bảng */
+    .table-hover tbody tr:hover { background-color: rgba(13, 110, 253, 0.05); }
+
+    /* CSS Tùy chỉnh cho DataTables */
+    div.dataTables_wrapper div.dataTables_filter input {
+        border-radius: 20px;
+        padding: 5px 15px;
+        border: 1px solid #ced4da;
+    }
+    div.dataTables_wrapper div.dataTables_length select {
+        border-radius: 8px;
+        padding: 5px;
+    }
+    .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        border-radius: 8px;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    // JS Mở Modal Giữ Nguyên
+    function moModalSuaSP(id, danhMucId, tenSP, giaThamKhao, moTa) {
+        document.getElementById('modal_title').innerHTML = '<i class="fas fa-edit text-warning me-2"></i> CẬP NHẬT THÔNG TIN';
+        document.getElementById('modal_sp_id').value = id;
+        document.getElementById('modal_danh_muc').value = danhMucId;
+        document.getElementById('modal_ten_sp').value = tenSP;
+        document.getElementById('modal_gia_tham_khao').value = giaThamKhao;
+        document.getElementById('modal_mo_ta').value = moTa;
+        
+        var btn = document.getElementById('modal_btn_submit');
+        btn.innerHTML = '<i class="fas fa-check-circle me-2"></i> LƯU THAY ĐỔI';
+        
+        var myModal = new bootstrap.Modal(document.getElementById('sanPhamModal'));
+        myModal.show();
+    }
+
+    document.getElementById('sanPhamModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('formSanPham').reset();
+        document.getElementById('modal_sp_id').value = '';
+        document.getElementById('modal_title').innerHTML = '<i class="fas fa-plus-circle text-warning me-2"></i> THÊM VÀO CATALOG';
+        
+        var btn = document.getElementById('modal_btn_submit');
+        btn.innerHTML = '<i class="fas fa-save me-2"></i> LƯU THÔNG TIN';
+    });
+
+    // KÍCH HOẠT DATATABLES
+    $(document).ready(function() {
+        $('#spTable').DataTable({
+            "language": {
+                "sProcessing":   "Đang xử lý...",
+                "sLengthMenu":   "Xem _MENU_ mục",
+                "sZeroRecords":  "Không tìm thấy dòng nào phù hợp",
+                "sInfo":         "Đang xem _START_ đến _END_ trong tổng số _TOTAL_ mục",
+                "sInfoEmpty":    "Đang xem 0 đến 0 trong tổng số 0 mục",
+                "sInfoFiltered": "(được lọc từ _MAX_ mục)",
+                "sInfoPostFix":  "",
+                "sSearch":       "<i class='fas fa-search text-muted'></i> Tìm kiếm:",
+                "sUrl":          "",
+                "oPaginate": {
+                    "sFirst":    "Đầu",
+                    "sPrevious": "Trước",
+                    "sNext":     "Tiếp",
+                    "sLast":     "Cuối"
+                }
+            },
+            "pageLength": 10,           
+            "lengthMenu": [5, 10, 25, 50], 
+            "ordering": true,           
+            "order": [[1, "asc"]],      // Mặc định sắp xếp theo Tên SP (cột 1)
+            "columnDefs": [
+                { "orderable": false, "targets": 0 }, // Tắt sắp xếp ở cột Ảnh (cột 0)
+                { "orderable": false, "targets": 4 }  // Tắt sắp xếp ở cột Thao tác (cột 4)
+            ]
+        });
+    });
+</script>
+{% endblock %}

@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
 <style>
-    /* CSS BẢN ĐỒ (Giữ nguyên của bạn) */
+    /* CSS BẢN ĐỒ */
     #gis-map { height: 650px; width: 100%; border-radius: 10px; border: 2px solid #0d6efd; cursor: crosshair; z-index: 1; }
     .gis-controls { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); height: 100%; }
     .leaflet-control-locate {
@@ -26,7 +26,7 @@
     }
     .text-eco { color: #0dcaf0 !important; }
 
-    /* CSS: Dành cho Bảng Giá Xăng Trượt (Marquee) */
+    /* CSS: Bảng Giá Xăng Trượt */
     .price-marquee {
         background-color: #0f4c81; 
         color: white;
@@ -40,7 +40,7 @@
     }
     .price-value { color: #ffc107; font-size: 1.1rem; }
 
-    /* CSS MỚI: Dành cho Tin Tức Trang Chủ */
+    /* CSS: Tin Tức Trang Chủ */
     .home-news-card {
         border-radius: 16px;
         transition: all 0.3s ease;
@@ -56,6 +56,18 @@
     .home-news-card:hover .home-news-img {
         transform: scale(1.05);
     }
+
+    /* CSS Cho Modal Đánh Giá */
+    .rating-stars { display: flex; flex-direction: row-reverse; justify-content: center; }
+    .rating-stars input { display: none; }
+    .rating-stars label { font-size: 2rem; color: #ddd; cursor: pointer; transition: 0.2s; padding: 0 5px; }
+    .rating-stars input:checked ~ label, .rating-stars label:hover, .rating-stars label:hover ~ label { color: #ffc107; }
+    
+    /* Làm đẹp thanh cuộn cho cột đánh giá */
+    .review-scroll::-webkit-scrollbar { width: 6px; }
+    .review-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+    .review-scroll::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+    .review-scroll::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 </style>
 
 {% load static %} 
@@ -159,6 +171,52 @@
     </div>
 </section>
 
+<div class="modal fade" id="modalDanhGiaTram" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg"> <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-warning text-dark border-0 py-3">
+                <h5 class="modal-title fw-bold"><i class="fas fa-gas-pump me-2"></i> Trạm: <span id="modal_ten_tram">Tên Trạm</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <div class="col-md-6 bg-light p-4 review-scroll" style="max-height: 480px; overflow-y: auto; border-right: 1px solid #dee2e6;">
+                        <h6 class="fw-bold text-dark mb-3 border-bottom pb-2">Cộng đồng đánh giá</h6>
+                        <div id="danh_sach_binh_luan">
+                            </div>
+                    </div>
+                    
+                    <div class="col-md-6 p-4 bg-white d-flex flex-column">
+                        <form method="POST" action="{% url 'gui_danh_gia_tram' %}" class="w-100 flex-grow-1 d-flex flex-column">
+                            {% csrf_token %}
+                            <input type="hidden" name="tram_id" id="modal_tram_id">
+                            
+                            <h6 class="fw-bold text-primary text-center mb-3">Trải nghiệm của bạn thế nào?</h6>
+                            
+                            <div class="rating-stars mb-4">
+                                <input type="radio" id="star5" name="so_sao" value="5" checked /><label for="star5" title="Tuyệt vời"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star4" name="so_sao" value="4" /><label for="star4" title="Tốt"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star3" name="so_sao" value="3" /><label for="star3" title="Bình thường"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star2" name="so_sao" value="2" /><label for="star2" title="Tệ"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star1" name="so_sao" value="1" /><label for="star1" title="Rất tệ"><i class="fas fa-star"></i></label>
+                            </div>
+
+                            <div class="mb-3">
+                                <input type="text" name="ten_khach_hang" class="form-control mb-3 bg-light border-0 shadow-sm px-3 py-2" placeholder="Nhập tên của bạn..." required>
+                                <textarea name="noi_dung" class="form-control bg-light border-0 shadow-sm px-3 py-2" rows="5" placeholder="Chia sẻ cảm nhận của bạn (thái độ nhân viên, chất lượng bơm xăng...)" required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-warning text-dark fw-bold w-100 shadow-sm rounded-pill py-2 mt-auto">
+                                <i class="fas fa-paper-plane me-1"></i> GỬI ĐÁNH GIÁ
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <section id="tin-tuc" class="bg-light py-5">
     <div class="container">
         <div class="d-flex justify-content-between align-items-end mb-4 border-bottom pb-3">
@@ -223,7 +281,6 @@
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
 <script>
-    // TOÀN BỘ CODE JS GIỮ NGUYÊN HOÀN TOÀN
     var allStations = {{ tram_json|safe }};
     var map = L.map('gis-map').setView([10.762622, 106.660172], 12);
     var markersLayer = L.layerGroup().addTo(map);
@@ -264,6 +321,55 @@
         return R * c;
     }
 
+    // HÀM MỞ MODAL VÀ ĐỔ DỮ LIỆU ĐÁNH GIÁ (JS)
+    function moModalDanhGia(id) {
+        // Lấy dữ liệu trạm từ danh sách đã nạp
+        var st = allStations.find(x => String(x.id) === String(id));
+        if(!st) return;
+
+        // Cập nhật thẻ ẩn và tiêu đề Modal
+        document.getElementById('modal_tram_id').value = st.id;
+        document.getElementById('modal_ten_tram').innerText = st.ten;
+        
+        // Vẽ danh sách đánh giá bên cột trái
+        var container = document.getElementById('danh_sach_binh_luan');
+        if (st.danh_gia_chi_tiet && st.danh_gia_chi_tiet.length > 0) {
+            var html = '';
+            st.danh_gia_chi_tiet.forEach(dg => {
+                var saoHtml = '';
+                for(var i=1; i<=5; i++) {
+                    if(i <= dg.sao) saoHtml += '<i class="fas fa-star text-warning"></i>';
+                    else saoHtml += '<i class="far fa-star text-warning opacity-25"></i>';
+                }
+                
+                html += `
+                    <div class="card border-0 shadow-sm mb-3 bg-white">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="text-dark small"><i class="fas fa-user-circle text-secondary me-1 fa-lg"></i> ${dg.ten}</strong>
+                                <span class="small text-muted" style="font-size: 0.7rem;"><i class="far fa-clock"></i> ${dg.ngay}</span>
+                            </div>
+                            <div class="mb-2" style="font-size: 0.75rem;">${saoHtml}</div>
+                            <p class="mb-0 text-dark opacity-75" style="font-size: 0.85rem;">${dg.noi_dung}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `
+                <div class="text-center text-muted p-4 mt-4">
+                    <i class="far fa-comment-dots fa-3x mb-3 opacity-25"></i><br>
+                    <span class="small">Trạm này chưa có đánh giá nào.<br>Hãy là người đầu tiên chia sẻ trải nghiệm nhé!</span>
+                </div>
+            `;
+        }
+
+        // Bật popup
+        var myModal = new bootstrap.Modal(document.getElementById('modalDanhGiaTram'));
+        myModal.show();
+    }
+
     function capNhatBanDo() {
         markersLayer.clearLayers(); 
         var radiusKm = parseFloat(document.getElementById('radiusRange').value);
@@ -294,13 +400,28 @@
                 var ecoBadge = isEcoStation ? `<div class="badge bg-info text-dark w-100 mb-2 shadow-sm"><i class="fas fa-leaf"></i> TRẠM XĂNG SINH THÁI</div>` : '';
                 var titleColor = isEcoStation ? 'text-eco' : 'text-primary';
 
+                // Lấy thông tin điểm đánh giá truyền vào Marker
+                var diemSao = st.diem_danh_gia ? parseFloat(st.diem_danh_gia).toFixed(1) : "5.0";
+                var luotDanhGia = st.luot_danh_gia ? st.luot_danh_gia : 0;
+                var ratingHtml = `
+                    <div class="mb-2" style="font-size: 0.9rem; cursor: pointer;" onclick="moModalDanhGia('${st.id}')">
+                        <span class="fw-bold text-dark me-1">${diemSao}</span>
+                        <i class="fas fa-star text-warning"></i>
+                        <span class="text-primary ms-1 small text-decoration-underline">(${luotDanhGia} đánh giá)</span>
+                    </div>
+                `;
+
                 var popupContent = `
-                    <div class="text-center" style="min-width: 200px;">
+                    <div class="text-center" style="min-width: 220px;">
                         <h6 class="fw-bold ${titleColor} text-uppercase mb-1">${st.ten}</h6>
                         ${ecoBadge}
+                        ${ratingHtml}
                         <p class="small mb-1 text-muted"><i class="fas fa-map-marker-alt"></i> ${st.dia_chi}</p>
                         ${distText}
                         <div class="mb-2">Sẵn có: ${fuelBadges}</div>
+                        
+                        <button onclick="moModalDanhGia('${st.id}')" class="btn btn-sm btn-outline-warning text-dark fw-bold mb-2 w-100 shadow-sm"><i class="far fa-edit"></i> Xem & Viết đánh giá</button>
+                        
                         <hr class="my-2">
                         <label class="small fw-bold text-dark mb-1">Dẫn đường:</label>
                         <div class="d-grid gap-2">
@@ -341,26 +462,50 @@
         veVongTron();
     }
 
+   function capNhatBanKinh(val) { 
+        if (!userLocation) {
+            alert("📍 Vui lòng chọn vị trí của bạn (Click lên bản đồ hoặc gõ tìm kiếm) trước khi lọc theo bán kính nhé!");
+            document.getElementById('radiusRange').value = 5;
+            document.getElementById('radiusVal').innerText = "5";
+            return;
+        }
+        veVongTron(); 
+    }
+
     function veVongTron() {
         var km = document.getElementById('radiusRange').value;
         document.getElementById('radiusVal').innerText = km;
+        
         if (!userLocation) return; 
+        
         if (radiusCircle) map.removeLayer(radiusCircle);
-        radiusCircle = L.circle(userLocation, { color: '#0d6efd', fillColor: '#0d6efd', fillOpacity: 0.05, radius: km * 1000 }).addTo(map);
+        
+        radiusCircle = L.circle(userLocation, { 
+            color: '#0d6efd', 
+            fillColor: '#0d6efd', 
+            fillOpacity: 0.05, 
+            radius: km * 1000 
+        }).addTo(map);
+
+        map.fitBounds(radiusCircle.getBounds(), {padding: [30, 30]});
         capNhatBanDo();
     }
-    
-    function capNhatBanKinh(val) { veVongTron(); }
 
     function timTramGanNhat() {
-        if (!navigator.geolocation) return;
+        if (!navigator.geolocation) {
+            alert("Trình duyệt của bạn không hỗ trợ định vị GPS.");
+            return;
+        }
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 document.getElementById('locationInput').value = "Vị trí GPS của tôi";
                 if (routeLayer) { map.removeControl(routeLayer); routeLayer = null; }
                 updateUserLocation(pos.coords.latitude, pos.coords.longitude, "<b><i class='fas fa-street-view'></i> Bạn đang ở đây</b>");
             },
-            (err) => console.warn(err)
+            (err) => {
+                console.warn(err);
+                alert("Hệ thống không thể lấy được vị trí. Vui lòng cho phép quyền truy cập GPS trên trình duyệt của bạn!");
+            }
         );
     }
 

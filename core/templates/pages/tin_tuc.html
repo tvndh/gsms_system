@@ -99,6 +99,7 @@
         </nav>
     </div>
 </div>
+
 <div class="container py-4">
     
     <div class="row mb-5 justify-content-center">
@@ -183,7 +184,7 @@
             
             {% if ds_tin.has_previous %}
                 <li class="page-item">
-                    <a class="page-link border-0 fw-bold px-3 text-dark" href="?page={{ ds_tin.previous_page_number }}{% if tu_khoa %}&q={{ tu_khoa }}{% endif %}">Trước</a>
+                    <a class="page-link border-0 fw-bold px-3 text-dark" href="?page={{ ds_tin.previous_page_number }}{% if tu_khoa %}&q={{ tu_khoa|urlencode }}{% endif %}">Trước</a>
                 </li>
             {% else %}
                 <li class="page-item disabled"><span class="page-link border-0 fw-bold px-3 text-muted">Trước</span></li>
@@ -193,13 +194,15 @@
                 {% if ds_tin.number == i %}
                     <li class="page-item active"><span class="page-link border-0 fw-bold bg-primary text-white">{{ i }}</span></li>
                 {% else %}
-                    <li class="page-item"><a class="page-link border-0 fw-bold text-dark" href="?page={{ i }}{% if tu_khoa %}&q={{ tu_khoa }}{% endif %}">{{ i }}</a></li>
+                    <li class="page-item">
+                        <a class="page-link border-0 fw-bold text-dark" href="?page={{ i }}{% if tu_khoa %}&q={{ tu_khoa|urlencode }}{% endif %}">{{ i }}</a>
+                    </li>
                 {% endif %}
             {% endfor %}
 
             {% if ds_tin.has_next %}
                 <li class="page-item">
-                    <a class="page-link border-0 fw-bold px-3 text-dark" href="?page={{ ds_tin.next_page_number }}{% if tu_khoa %}&q={{ tu_khoa }}{% endif %}">Sau</a>
+                    <a class="page-link border-0 fw-bold px-3 text-dark" href="?page={{ ds_tin.next_page_number }}{% if tu_khoa %}&q={{ tu_khoa|urlencode }}{% endif %}">Sau</a>
                 </li>
             {% else %}
                 <li class="page-item disabled"><span class="page-link border-0 fw-bold px-3 text-muted">Sau</span></li>

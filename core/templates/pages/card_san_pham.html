@@ -1,0 +1,36 @@
+{% load humanize %}
+<div class="col-sm-6 col-lg-4 col-xl-3">
+    <div class="card product-card h-100 border-0 shadow-sm bg-white">
+        <div class="img-wrapper text-center">
+            <span class="badge bg-success badge-category fw-bold text-uppercase shadow-sm">{{ sp.danh_muc.ten_dm }}</span>
+            {% if sp.anh_sp %}
+                <img src="{{ sp.anh_sp.url }}" class="img-fluid" style="height: 180px; object-fit: contain;" alt="{{ sp.ten_sp }}">
+            {% else %}
+                <div class="d-flex align-items-center justify-content-center" style="height: 180px;">
+                    <i class="fas fa-image fa-3x text-muted opacity-25"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-body d-flex flex-column p-4">
+            <h5 class="fw-bold text-dark mb-2 line-clamp-2" style="min-height: 48px;">{{ sp.ten_sp }}</h5>
+            <p class="small text-secondary mb-3 text-truncate">{{ sp.mo_ta|default:"Sản phẩm & Dịch vụ của GSMS" }}</p>
+            <div class="mt-auto">
+                <hr class="opacity-10 mb-3">
+                <div class="mb-3">
+                    <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.7rem;">Giá Tham Khảo</small>
+                    <span class="price-tag fw-bold text-danger">{{ sp.gia_tham_khao|default:0|floatformat:0|intcomma }} <small class="text-muted fs-6">VNĐ</small></span>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary fw-bold rounded-pill py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalChiTiet_{{ sp.id }}">
+                        <i class="fas fa-info-circle me-1"></i> XEM CHI TIẾT
+                    </button>
+                    <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalDanhGia_{{ sp.id }}">
+                        <i class="fas fa-star text-dark me-1"></i> VIẾT ĐÁNH GIÁ
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>

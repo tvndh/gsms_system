@@ -10,39 +10,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #f4f6f9; /* Màu nền xám nhạt chuyên nghiệp */
-            overflow-x: hidden;
-        }
-        
-        /* CSS Tùy chỉnh cho Menu Admin xịn sò */
-        .admin-navbar {
-            background: linear-gradient(90deg, #0f4c81 0%, #0069d9 100%); 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .admin-nav-link {
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 0.5rem 0.75rem !important;
-            margin: 2px 2px;
-            border-radius: 6px;
-            transition: all 0.2s ease-in-out;
-            color: rgba(255,255,255,0.85) !important;
-        }
+        body { font-family: 'Nunito', sans-serif; background-color: #f4f6f9; overflow-x: hidden; }
+        .admin-navbar { background: linear-gradient(90deg, #0f4c81 0%, #0069d9 100%); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .admin-nav-link { font-weight: 600; font-size: 0.9rem; padding: 0.5rem 0.75rem !important; margin: 2px 2px; border-radius: 6px; transition: all 0.2s ease-in-out; color: rgba(255,255,255,0.85) !important; }
         .admin-nav-link i { margin-right: 5px; }
-        .admin-nav-link:hover, .admin-nav-link.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #ffffff !important;
-            transform: translateY(-1px);
-        }
+        .admin-nav-link:hover, .admin-nav-link.active { background-color: rgba(255, 255, 255, 0.2); color: #ffffff !important; transform: translateY(-1px); }
+        .dropdown-menu { border-radius: 8px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.15); padding: 8px; }
+        .dropdown-item { font-weight: 600; color: #495057; border-radius: 4px; padding: 8px 15px; transition: all 0.2s; }
+        .dropdown-item:hover { background-color: #f8f9fa; color: #0d6efd; transform: translateX(3px); }
         @keyframes blink { 50% { opacity: 0.5; } }
         .blink-animation { animation: blink 1.5s infinite; }
-        
-        /* Chỉnh lại chiều cao để nội dung không bị dính vào Navbar */
-        .main-content-wrapper {
-            min-height: calc(100vh - 60px); 
-        }
+        .main-content-wrapper { min-height: calc(100vh - 60px); }
     </style>
 </head>
 <body>
@@ -78,32 +56,53 @@
                             <i class="fas fa-store-alt text-info"></i> Quản lý Trạm
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_bons' %}active{% endif %}" href="{% url 'admin_bons' %}">
+                            <i class="fas fa-database text-primary"></i> Quản lý Bồn
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_khos' %}active{% endif %}" href="{% url 'admin_khos' %}">
                             <i class="fas fa-industry text-danger"></i> Quản lý NCC
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_nhan_sus' %}active{% endif %}" href="{% url 'admin_nhan_sus' %}">
-                            <i class="fas fa-users-cog text-light"></i> Nhân sự
-                        </a>
-                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'quan_ly_gia' %}active{% endif %}" href="{% url 'quan_ly_gia' %}">
-                            <i class="fas fa-tags text-success"></i> Chỉnh Giá
+                            <i class="fas fa-tags text-success"></i> Quản Lý Giá
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_nhan_sus' %}active{% endif %}" href="{% url 'admin_nhan_sus' %}">
+                            <i class="fas fa-users-cog text-light"></i> Quản Lý Nhân Sự
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_san_pham' %}active{% endif %}" href="{% url 'admin_san_pham' %}">
+                            <i class="fas fa-boxes text-warning"></i> Quản Lý Sản Phẩm
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link admin-nav-link {% if request.resolver_match.url_name == 'admin_tin_tuc' %}active{% endif %}" href="{% url 'admin_tin_tuc' %}">
+                            <i class="fas fa-newspaper text-white"></i> Quản Lý Tin Tức
                         </a>
                     </li>
                     {% endif %}
                     
                     <li class="nav-item ms-lg-2 ps-lg-2 border-start border-light border-opacity-25 d-none d-lg-block">
-                        <a class="nav-link admin-nav-link opacity-75" href="{% url 'trang_chu' %}">
+                        <a class="nav-link admin-nav-link opacity-75" href="{% url 'trang_chu' %}" target="_blank">
                             <i class="fas fa-external-link-alt"></i> Xem Trang Khách
                         </a>
                     </li>
                 </ul>
                 
                 <div class="d-flex align-items-center gap-3 mt-2 mt-lg-0">
-                    <a href="{% url 'admin_inbox' %}" class="position-relative text-white text-decoration-none">
+                    <a href="{% url 'admin_inbox' %}" class="position-relative text-white text-decoration-none me-2" title="Hộp thư Khách hàng & Đối tác">
                         <i class="fas fa-inbox fs-5 hover-white"></i>
                         <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle blink-animation"></span>
                     </a>
@@ -112,9 +111,17 @@
                         <i class="fas fa-user-circle text-white fs-5 me-2"></i>
                         <span class="text-white me-3 pe-3 border-end border-light border-opacity-25 small">
                             {{ user.full_name|default:user.username }} 
-                            <span class="badge {% if user.role == 'admin' %}bg-danger{% else %}bg-info text-dark{% endif %} ms-1">{{ user.get_role_display }}</span>
+                            <span class="badge {% if user.is_superuser or user.role == 'admin' %}bg-danger{% else %}bg-warning text-dark{% endif %} ms-1 shadow-sm">
+                                {% if user.is_superuser or user.role == 'admin' %}
+                                    <i class="fas fa-crown me-1"></i> Giám Đốc
+                                {% elif user.role == 'ke_toan' %}
+                                    <i class="fas fa-calculator me-1"></i> Kế Toán
+                                {% else %}
+                                    <i class="fas fa-user-tie me-1"></i> Quản Trị
+                                {% endif %}
+                            </span>
                         </span>
-                        <a href="{% url 'dang_xuat' %}" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-bold" style="font-size: 0.8rem;">Đăng xuất</a>
+                        <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-bold" style="font-size: 0.8rem;">Đăng xuất</a>
                     </div>
                 </div>
             </div>

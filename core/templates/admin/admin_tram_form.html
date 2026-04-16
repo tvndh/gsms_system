@@ -12,7 +12,7 @@
     }
     #map { height: 400px; width: 100%; cursor: crosshair; }
     
-    /* 2. TUYỆT CHIÊU TRỊ BOOTSTRAP LÀM VỠ BẢN ĐỒ */
+    /* TUYỆT CHIÊU TRỊ BOOTSTRAP LÀM VỠ BẢN ĐỒ */
     .leaflet-container img {
         max-width: none !important;
         max-height: none !important;
@@ -51,31 +51,29 @@
                                     <textarea name="dia_chi" class="form-control bg-light" rows="3" placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/TP..." required>{{ tram.dia_chi|default:'' }}</textarea>
                                 </div>
 
-                                {% if not tram %}
-                                <div class="mb-4 p-3 bg-light border rounded-3">
-                                    <label class="fw-bold mb-2 text-primary"><i class="fas fa-database me-1"></i> Khởi tạo bồn chứa tự động</label>
-                                    <p class="small text-muted mb-2">Chọn các loại nhiên liệu Trạm sẽ bán, hệ thống sẽ tự sinh bồn chứa và tài khoản quản lý.</p>
+                                <div class="mb-4 p-3 bg-light border rounded-3" style="border-left: 4px solid #0d6efd !important;">
+                                    <label class="fw-bold mb-2 text-primary"><i class="fas fa-database me-1"></i> Khởi tạo & Cập nhật Bồn chứa</label>
+                                    <p class="small text-muted mb-2">Chọn các loại nhiên liệu Trạm bán, hệ thống sẽ tự sinh bồn chứa nếu chưa có.</p>
                                     
                                     <div class="d-flex flex-wrap gap-3 mt-2">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="A95" id="chkA95" checked>
+                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="A95" id="chkA95" {% if not tram or 'A95' in loai_nhien_lieu_hien_tai %}checked{% endif %}>
                                             <label class="form-check-label fw-bold text-danger" for="chkA95">Xăng A95</label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="E5" id="chkE5" checked>
+                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="E5" id="chkE5" {% if not tram or 'E5' in loai_nhien_lieu_hien_tai %}checked{% endif %}>
                                             <label class="form-check-label fw-bold text-success" for="chkE5">Xăng E5</label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="E10" id="chkE10">
-                                            <label class="form-check-label fw-bold text-success" for="chkE10">Xăng Sinh Học E10</label>
+                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="E10" id="chkE10" {% if 'E10' in loai_nhien_lieu_hien_tai %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold text-success" for="chkE10">E10</label>
                                         </div>
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="DO" id="chkDO" checked>
-                                            <label class="form-check-label fw-bold text-warning" for="chkDO">Dầu DO</label>
+                                            <input class="form-check-input" type="checkbox" name="nhien_lieu" value="DO" id="chkDO" {% if not tram or 'DO' in loai_nhien_lieu_hien_tai %}checked{% endif %}>
+                                            <label class="form-check-label fw-bold text-warning text-dark" for="chkDO">Dầu DO</label>
                                         </div>
                                     </div>
                                 </div>
-                                {% endif %}
 
                                 <div class="row mb-4">
                                     <div class="col-6">
@@ -101,6 +99,58 @@
                             </div>
                         </div>
 
+                        {% if tram %}
+                        <div class="mt-4 pt-4 border-top">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-dark m-0"><i class="fas fa-database text-primary me-2"></i> Hệ thống Bồn chứa tại trạm</h5>
+                                <a href="{% url 'admin_bons' %}" class="btn btn-sm btn-outline-primary rounded-pill fw-bold shadow-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i> Quản lý chuyên sâu
+                                </a>
+                            </div>
+
+                            <div class="table-responsive rounded-3 border shadow-sm">
+                                <table class="table table-hover align-middle mb-0 bg-white">
+                                    <thead class="table-light">
+                                        <tr class="small text-uppercase text-center">
+                                            <th class="text-start ps-4">Tên Bồn</th>
+                                            <th>Loại Nhiên Liệu</th>
+                                            <th>Tồn kho / Sức chứa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-center">
+                                        {% for bon in ds_bon %}
+                                        <tr>
+                                            <td class="text-start ps-4 fw-bold">{{ bon.ten_bon }}</td>
+                                            <td>
+                                                <span class="badge {% if bon.loai_nhien_lieu == 'A95' %}bg-success{% elif bon.loai_nhien_lieu == 'DO' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %} shadow-sm px-3 py-2">
+                                                    {{ bon.get_loai_nhien_lieu_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-between small fw-bold mb-1 px-3">
+                                                    <span class="{% if bon.phan_tram < 20 %}text-danger blink-animation{% else %}text-dark{% endif %}">
+                                                        {{ bon.muc_hien_tai|floatformat:0 }} L
+                                                    </span>
+                                                    <span class="text-muted">{{ bon.suc_chua_toi_da|floatformat:0 }} L</span>
+                                                </div>
+                                                <div class="progress mx-3" style="height: 6px;">
+                                                    <div class="progress-bar {% if bon.phan_tram < 20 %}bg-danger{% elif bon.phan_tram < 50 %}bg-warning{% else %}bg-primary{% endif %}" 
+                                                         style="width: {{ bon.phan_tram }}%"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center py-4 text-muted fst-italic">
+                                                <i class="fas fa-exclamation-triangle me-1 text-warning"></i> Trạm này chưa được lắp đặt bồn chứa nào. Hệ thống sẽ tự tạo bồn dựa vào Loại nhiên liệu bạn tick ở trên khi bấm Lưu!
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
                         <hr class="my-4 text-muted">
                         
                         <div class="text-end">
@@ -124,7 +174,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     
     // 1. TUYỆT CHIÊU TRỊ LỖI DẤU PHẨY CỦA DJANGO:
-    // Lấy giá trị dưới dạng chuỗi (thêm ngoặc kép), sau đó đổi dấu phẩy thành chấm, rồi ép kiểu số thực
     var strLat = "{{ tram.latitude|default:'10.9150' }}".replace(',', '.');
     var strLng = "{{ tram.longitude|default:'106.7920' }}".replace(',', '.');
     
@@ -194,4 +243,8 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+<style>
+    @keyframes blink { 50% { opacity: 0.5; } }
+    .blink-animation { animation: blink 1.5s infinite; }
+</style>
 {% endblock %}

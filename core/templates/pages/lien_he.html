@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container-fluid p-0 position-relative mb-5 shadow-sm overflow-hidden" style="height: 300px;">
-    <img src="{% static 'images/banner_chinh.jpg' %}" class="w-100 h-100 position-absolute top-0 start-0" style="object-fit: cover; z-index: 1;" alt="Liên hệ GSMS">
+    <img src="{% static 'images/banner_chinh.jpg' %}" class="w-100 h-100 position-absolute top-0 start-0" style="object-fit: cover; z-index: 1;" alt="Liên hệ GSMS" onerror="this.src='https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=80'">
     
     <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(15, 76, 129, 0.85); z-index: 2;"></div>
     
@@ -88,26 +88,36 @@
                         <div class="col-md-6">
                             <div class="form-floating mb-3">
                                 <input type="text" name="ho_ten" class="form-control custom-input" id="floatingName" placeholder="Họ và Tên" required>
-                                <label for="floatingName" class="text-muted"><i class="fas fa-user me-2"></i>Họ và Tên</label>
+                                <label for="floatingName" class="text-muted"><i class="fas fa-user me-2"></i>Họ và Tên <span class="text-danger">*</span></label>
                             </div>
                         </div>
                         
                         <div class="col-md-6">
                             <div class="form-floating mb-3">
-                                <input type="email" name="email" class="form-control custom-input" id="floatingEmail" placeholder="name@example.com" required>
-                                <label for="floatingEmail" class="text-muted"><i class="fas fa-envelope me-2"></i>Email phản hồi</label>
+                                <input type="text" name="so_dien_thoai" class="form-control custom-input" id="floatingPhone" placeholder="0901234567" required>
+                                <label for="floatingPhone" class="text-muted"><i class="fas fa-phone-alt me-2"></i>Số điện thoại <span class="text-danger">*</span></label>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="form-floating mb-3">
-                        <input type="text" name="tieu_de" class="form-control custom-input" id="floatingSubject" placeholder="Tiêu đề" required>
-                        <label for="floatingSubject" class="text-muted"><i class="fas fa-tag me-2"></i>Chủ đề bạn cần hỗ trợ?</label>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="text" name="tieu_de" class="form-control custom-input" id="floatingSubject" placeholder="Tiêu đề" required>
+                                <label for="floatingSubject" class="text-muted"><i class="fas fa-tag me-2"></i>Chủ đề cần hỗ trợ <span class="text-danger">*</span></label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input type="email" name="email" class="form-control custom-input" id="floatingEmail" placeholder="name@example.com" required>
+                                <label for="floatingEmail" class="text-muted"><i class="fas fa-envelope me-2"></i>Email nhận phản hồi <span class="text-danger">*</span></label>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-floating mb-4">
                         <textarea name="noi_dung" class="form-control custom-input" id="floatingTextarea" placeholder="Nội dung" style="height: 150px" required></textarea>
-                        <label for="floatingTextarea" class="text-muted"><i class="fas fa-comment-dots me-2"></i>Chi tiết yêu cầu của bạn...</label>
+                        <label for="floatingTextarea" class="text-muted"><i class="fas fa-comment-dots me-2"></i>Chi tiết yêu cầu của bạn... <span class="text-danger">*</span></label>
                     </div>
                     
                     <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm btn-hover rounded-pill py-3">

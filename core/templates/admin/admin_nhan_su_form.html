@@ -77,22 +77,21 @@
                                 <div class="mb-3">
                                     <label class="fw-bold mb-2 text-dark">Vai trò trong hệ thống <span class="text-danger">*</span></label>
                                     <select name="role" id="role_select" class="form-select border-primary fw-bold" required onchange="toggleTramSelect()">
+                                        <option value="admin" {% if nv.role == 'admin' or nv.is_superuser %}selected{% endif %}>🛡️ Admin Hệ Thống</option>
+                                        <option value="truong_tram" {% if nv.role == 'truong_tram' %}selected{% endif %}>🎖️ Trưởng Trạm</option>
                                         <option value="nv_ban_xang" {% if nv.role == 'nv_ban_xang' %}selected{% endif %}>⛽ Nhân viên Bơm xăng</option>
-                                        <option value="nv_ban_hang" {% if nv.role == 'nv_ban_hang' %}selected{% endif %}>🛒 Thu ngân Siêu thị Mart</option>
-                                        <option value="truong_tram" {% if nv.role == 'truong_tram' %}selected{% endif %}>🎖️ Cửa Hàng Trưởng</option>
-                                        <option value="ke_toan" {% if nv.role == 'ke_toan' %}selected{% endif %}>📊 Kế toán Nội bộ (Văn phòng)</option>
                                     </select>
                                 </div>
 
                                 <div class="mb-3" id="tram_wrapper">
-                                    <label class="fw-bold mb-2 text-dark">Cơ sở làm việc (Trạm Xăng)</label>
+                                    <label class="fw-bold mb-2 text-dark">Cơ sở làm việc (Trạm Xăng) <span class="text-danger" id="sao_tram">*</span></label>
                                     <select name="tram_id" id="tram_select" class="form-select">
-                                        <option value="">-- Chưa phân bổ / Văn phòng tổng --</option>
+                                        <option value="">-- Chọn Trạm Xăng --</option>
                                         {% for t in ds_tram %}
                                         <option value="{{ t.id }}" {% if nv.tram_xang_id == t.id %}selected{% endif %}>{{ t.ten_tram }}</option>
                                         {% endfor %}
                                     </select>
-                                    <small class="text-muted" id="tram_note">Nhân viên sẽ chỉ thấy dữ liệu của trạm được chọn.</small>
+                                    <small id="tram_note" class="text-muted">Nhân viên sẽ chỉ thấy dữ liệu của trạm được chọn.</small>
                                 </div>
                             </div>
                         </div>
@@ -117,23 +116,31 @@
 
 {% block extra_js %}
 <script>
-    // Hàm xử lý ẩn hiện chọn Trạm khi chọn vai trò Kế toán
+    // Hàm xử lý ẩn hiện chọn Trạm khi thay đổi vai trò
     function toggleTramSelect() {
         const role = document.getElementById('role_select').value;
         const tramWrapper = document.getElementById('tram_wrapper');
         const tramSelect = document.getElementById('tram_select');
         const tramNote = document.getElementById('tram_note');
+        const saoTram = document.getElementById('sao_tram');
 
-        if (role === 'ke_toan') {
-            // Kế toán làm ở văn phòng tổng, không cần chọn trạm
+        if (role === 'admin') {
+            // Nếu là Admin: Xóa giá trị trạm, khóa ô select lại, làm mờ đi
             tramSelect.value = "";
             tramWrapper.style.opacity = "0.5";
             tramSelect.disabled = true;
-            tramNote.innerText = "Kế toán quản lý dữ liệu toàn hệ thống, không cần chọn trạm lẻ.";
+            tramSelect.required = false;
+            saoTram.style.display = "none";
+            tramNote.innerText = "Admin quản lý toàn hệ thống, không gán cố định vào trạm nào.";
+            tramNote.className = "text-danger fw-bold small";
         } else {
+            // Nếu là Trưởng trạm / NV Bơm xăng: Bắt buộc phải chọn trạm
             tramWrapper.style.opacity = "1";
             tramSelect.disabled = false;
-            tramNote.innerText = "Nhân viên sẽ chỉ thấy dữ liệu của trạm được chọn.";
+            tramSelect.required = true;
+            saoTram.style.display = "inline";
+            tramNote.innerText = "Bắt buộc chọn trạm để nhân viên được phân công làm việc.";
+            tramNote.className = "text-primary fw-bold small";
         }
     }
 

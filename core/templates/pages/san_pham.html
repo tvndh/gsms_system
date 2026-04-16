@@ -3,7 +3,6 @@
 
 {% block content %}
 <style>
-    /* CSS Nâng cao cho E-Catalog */
     .hero-catalog {
         background: linear-gradient(135deg, #0f4c81 0%, #198754 100%);
         position: relative;
@@ -20,6 +19,8 @@
         transition: all 0.3s ease;
         border-radius: 16px;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
     .product-card:hover {
         transform: translateY(-8px);
@@ -31,177 +32,260 @@
         padding: 1.5rem;
         border-bottom: 1px solid #f1f3f5;
     }
-    .badge-category {
-        position: absolute;
-        top: 15px; left: 15px;
-        z-index: 2;
-        font-size: 0.75rem;
-        letter-spacing: 1px;
-    }
-    .badge-hot {
-        position: absolute;
-        top: 15px; right: 15px;
-        z-index: 2;
-    }
-    .price-tag {
-        color: #d9534f;
-        font-size: 1.5rem;
-    }
+    .badge-category { position: absolute; top: 15px; left: 15px; z-index: 2; font-size: 0.75rem; letter-spacing: 1px; }
+    .price-tag { color: #d9534f; font-size: 1.5rem; }
+    
+    /* Style cho Tabs Động */
     .nav-pills .nav-link {
-        color: #495057;
-        font-weight: 600;
-        border-radius: 50px;
-        padding: 0.5rem 1.5rem;
-        margin: 0 0.25rem;
-        border: 1px solid #dee2e6;
-        transition: all 0.2s;
+        color: #495057; font-weight: 700; border-radius: 50px; padding: 0.75rem 1.5rem; margin: 0 0.25rem 0.5rem;
+        border: 2px solid transparent; transition: all 0.3s; background: #f8f9fa; cursor: pointer;
     }
-    .nav-pills .nav-link:hover, .nav-pills .nav-link.active {
-        background-color: #0d6efd;
-        color: white;
-        border-color: #0d6efd;
+    .nav-pills .nav-link:hover { background-color: #e9ecef; }
+    .nav-pills .nav-link.active {
+        background-color: #0f4c81; color: white; box-shadow: 0 4px 10px rgba(15, 76, 129, 0.3);
     }
+    
+    /* Style phân trang */
+    .pagination { justify-content: center; margin-top: 2rem; }
+    .page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; color: white; }
+    .page-link { color: #0d6efd; cursor: pointer; border-radius: 8px; margin: 0 4px; border: 1px solid #dee2e6; }
+    .page-link:hover { background-color: #e9ecef; }
 </style>
 
 <div class="hero-catalog py-5 text-center text-white shadow-sm">
     <div class="container position-relative z-1 py-4">
-        <h5 class="text-warning fw-bold tracking-wider mb-2"><i class="fas fa-crown"></i> CHẤT LƯỢNG QUỐC TẾ</h5>
+        <h5 class="text-warning fw-bold tracking-wider mb-2"><i class="fas fa-crown"></i> HỆ SINH THÁI ĐA DẠNG</h5>
         <h1 class="display-4 fw-bold mb-3">Sản Phẩm & Dịch Vụ</h1>
-        <p class="lead opacity-75 mx-auto" style="max-width: 600px;">
-            Hệ sinh thái sản phẩm nhiên liệu và hóa dầu đa dạng, đáp ứng mọi nhu cầu vận hành của động cơ và máy móc công nghiệp.
+        <p class="lead opacity-75 mx-auto" style="max-width: 700px;">
+            Từ cung cấp nhiên liệu công nghiệp đến các tiện ích mua sắm và chăm sóc xe chuyên nghiệp ngay tại trạm.
         </p>
     </div>
 </div>
 
-<div class="bg-white border-bottom shadow-sm sticky-top" style="top: 60px; z-index: 1020;">
-    <div class="container py-3">
-        <ul class="nav nav-pills justify-content-center flex-nowrap overflow-auto pb-2 pb-md-0" id="product-filter" style="white-space: nowrap;">
-            <li class="nav-item">
-                <a class="nav-link active shadow-sm" href="#"><i class="fas fa-layer-group me-2"></i>Tất cả sản phẩm</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#"><i class="fas fa-gas-pump me-2"></i>Xăng - Nhiên liệu</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#"><i class="fas fa-oil-can me-2"></i>Dầu Nhớt - Bôi trơn</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#"><i class="fas fa-burn me-2"></i>Khí Hóa Lỏng (LPG)</a>
-            </li>
-        </ul>
-    </div>
-</div>
-
 <div class="container py-5">
-    <div class="row g-4">
+    
+    <div class="row mb-5 align-items-center justify-content-between">
+        <div class="col-lg-8 mb-3 mb-lg-0">
+            <ul class="nav nav-pills flex-wrap gap-2" id="catalog-tabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active filter-btn" data-filter="all" type="button">
+                        <i class="fas fa-th-large me-1"></i> Tất cả
+                    </button>
+                </li>
+                {% for dm in ds_danh_muc %}
+                <li class="nav-item">
+                    <button class="nav-link filter-btn" data-filter="dm-{{ dm.id }}" type="button">
+                        <i class="fas fa-tag me-1"></i> {{ dm.ten_dm }}
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-lg-4">
+            <div class="input-group input-group-lg shadow-sm">
+                <span class="input-group-text bg-white border-end-0 text-primary"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchCatalog" class="form-control border-start-0" placeholder="Tìm tên sản phẩm, dịch vụ...">
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4" id="productGrid">
         {% for sp in ds_sp %}
-        <div class="col-sm-6 col-lg-4 col-xl-3">
-            <div class="card product-card h-100 border-0 shadow-sm bg-white">
-                
-                <div class="img-wrapper text-center">
-                    <span class="badge bg-dark badge-category fw-bold text-uppercase shadow-sm">{{ sp.danh_muc.ten_dm|default:"Sản Phẩm" }}</span>
-                    <span class="badge bg-danger badge-hot shadow-sm animate__animated animate__pulse animate__infinite"><i class="fas fa-fire"></i> HOT</span>
-                    
-                    {% if sp.anh_sp %}
-                        <img src="{{ sp.anh_sp.url }}" class="img-fluid" style="height: 180px; object-fit: contain; mix-blend-mode: multiply;" alt="{{ sp.ten_sp }}">
-                    {% else %}
-                        <img src="https://cdn-icons-png.flaticon.com/512/4076/4076432.png" class="img-fluid opacity-25 p-4" style="height: 180px; object-fit: contain;" alt="No image">
-                    {% endif %}
-                </div>
-                
-                <div class="card-body d-flex flex-column p-4">
-                    <h5 class="fw-bold text-dark mb-2 line-clamp-2" style="min-height: 48px;">{{ sp.ten_sp }}</h5>
-                    <p class="small text-secondary mb-3" style="min-height: 40px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                        {{ sp.mo_ta|default:"Đang cập nhật mô tả chi tiết cho sản phẩm này." }}
-                    </p>
-                    
-                    <div class="mt-auto">
-                        <hr class="opacity-10 mb-3">
-                        <div class="d-flex justify-content-between align-items-end mb-3">
-                            <div>
+            <div class="col-sm-6 col-lg-4 col-xl-3 product-item dm-{{ sp.danh_muc.id }}">
+                <div class="card product-card h-100 border-0 shadow-sm bg-white">
+                    <div class="img-wrapper text-center">
+                        <span class="badge bg-success badge-category fw-bold text-uppercase shadow-sm">{{ sp.danh_muc.ten_dm }}</span>
+                        {% if sp.anh_sp %}
+                            <img src="{{ sp.anh_sp.url }}" class="img-fluid" style="height: 180px; object-fit: contain;" alt="{{ sp.ten_sp }}">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center" style="height: 180px;">
+                                <i class="fas fa-image fa-3x text-muted opacity-25"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column p-4">
+                        <h5 class="fw-bold text-dark mb-2 line-clamp-2 product-name" style="min-height: 48px;">{{ sp.ten_sp }}</h5>
+                        <p class="small text-secondary mb-3 text-truncate product-desc">{{ sp.mo_ta|default:"Sản phẩm & Dịch vụ của GSMS" }}</p>
+                        <div class="mt-auto">
+                            <hr class="opacity-10 mb-3">
+                            <div class="mb-3">
                                 <small class="text-muted d-block fw-bold text-uppercase" style="font-size: 0.7rem;">Giá Tham Khảo</small>
-                                <span class="price-tag fw-bold">{{ sp.gia_tham_khao|default:0|floatformat:0|intcomma }} <small class="text-muted fs-6">VNĐ/Lít</small></span>
+                                <span class="price-tag fw-bold text-danger">{{ sp.gia_tham_khao|default:0|floatformat:0|intcomma }} <small class="text-muted fs-6">VNĐ</small></span>
                             </div>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <a href="tel:19008888" class="btn btn-outline-primary fw-bold rounded-pill py-2 hover-btn shadow-sm">
-                                <i class="fas fa-headset me-2"></i> NHẬN BÁO GIÁ SỈ
-                            </a>
-                            
-                            <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalDanhGia_{{ sp.id }}">
-                                <i class="fas fa-star text-dark me-1"></i> VIẾT ĐÁNH GIÁ
-                            </button>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-primary fw-bold rounded-pill py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalChiTiet_{{ sp.id }}">
+                                    <i class="fas fa-info-circle me-1"></i> XEM CHI TIẾT
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="modal fade" id="modalDanhGia_{{ sp.id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow-lg rounded-4">
-                    <div class="modal-header bg-primary text-white border-0 py-3 rounded-top-4">
-                        <h5 class="modal-title fw-bold"><i class="fas fa-comment-dots me-2"></i> Đánh giá sản phẩm</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <form method="POST" action="{% url 'gui_danh_gia' sp.id %}">
-                        {% csrf_token %}
-                        <div class="modal-body p-4 bg-light">
-                            <div class="text-center mb-4">
-                                <h6 class="fw-bold text-primary">{{ sp.ten_sp }}</h6>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="fw-bold text-secondary mb-2">Tên của bạn:</label>
-                                <input type="text" name="ten_khach_hang" class="form-control border-0 shadow-sm py-2" required placeholder="Nhập tên...">
-                            </div>
-                            <div class="mb-3">
-                                <label class="fw-bold text-secondary mb-2">Chất lượng sản phẩm:</label>
-                                <select name="so_sao" class="form-select border-0 shadow-sm py-2 text-warning fw-bold">
-                                    <option value="5">⭐⭐⭐⭐⭐ (Tuyệt vời)</option>
-                                    <option value="4">⭐⭐⭐⭐ (Rất tốt)</option>
-                                    <option value="3">⭐⭐⭐ (Bình thường)</option>
-                                    <option value="2">⭐⭐ (Kém)</option>
-                                    <option value="1">⭐ (Rất tệ)</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="fw-bold text-secondary mb-2">Cảm nhận của bạn:</label>
-                                <textarea name="noi_dung" class="form-control border-0 shadow-sm" rows="4" required placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này nhé..."></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer bg-white border-0 p-3 rounded-bottom-4">
-                            <button type="submit" class="btn btn-warning fw-bold w-100 py-3 shadow-sm fs-5 text-dark">
-                                <i class="fas fa-paper-plane me-2"></i> GỬI ĐÁNH GIÁ
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
         {% empty %}
-        <div class="col-12 text-center py-5 my-5">
-            <div class="bg-light rounded-circle d-inline-flex justify-content-center align-items-center mb-4" style="width: 120px; height: 120px;">
-                <i class="fas fa-box-open fa-3x text-muted opacity-50"></i>
+            <div class="col-12 text-center py-5 my-5" id="emptyStateDB">
+                <div class="bg-light rounded-circle d-inline-flex justify-content-center align-items-center mb-4" style="width: 120px; height: 120px;">
+                    <i class="fas fa-box-open fa-3x text-muted opacity-50"></i>
+                </div>
+                <h4 class="fw-bold text-dark">Catalog hiện đang trống</h4>
             </div>
-            <h4 class="fw-bold text-dark">Chưa có sản phẩm nào</h4>
-            <p class="text-muted">Danh mục sản phẩm đang trong quá trình cập nhật lên hệ thống. Vui lòng quay lại sau!</p>
-            <a href="{% url 'trang_chu' %}" class="btn btn-primary fw-bold px-4 rounded-pill mt-2">Về Trang Chủ</a>
-        </div>
         {% endfor %}
     </div>
-    
-    {% if ds_sp %}
-    <div class="d-flex justify-content-center mt-5 pt-3">
-        <ul class="pagination shadow-sm">
-            <li class="page-item disabled"><a class="page-link" href="#"><i class="fas fa-chevron-left"></i></a></li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#"><i class="fas fa-chevron-right"></i></a></li>
-        </ul>
+
+    <div class="col-12 text-center py-5 my-5 d-none" id="noResultState">
+        <h4 class="fw-bold text-muted"><i class="fas fa-search-minus me-2"></i> Không tìm thấy sản phẩm nào!</h4>
     </div>
-    {% endif %}
+
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination" id="paginationControls">
+            </ul>
+    </nav>
 </div>
+
+{% for sp in ds_sp %}
+<div class="modal fade" id="modalChiTiet_{{ sp.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title fw-bold text-primary"><i class="fas fa-layer-group me-2"></i> Thông tin chi tiết</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <div class="col-md-5 bg-light d-flex align-items-center justify-content-center p-4 border-end">
+                        {% if sp.anh_sp %}
+                            <img src="{{ sp.anh_sp.url }}" class="img-fluid rounded shadow-sm" style="max-height: 300px; object-fit: contain;" alt="{{ sp.ten_sp }}">
+                        {% else %}
+                            <i class="fas fa-image fa-5x text-muted opacity-25"></i>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-7 p-4 p-lg-5">
+                        <span class="badge bg-success mb-2">{{ sp.danh_muc.ten_dm }}</span>
+                        <h4 class="fw-bold text-dark mb-3">{{ sp.ten_sp }}</h4>
+                        <h3 class="text-danger fw-bold mb-3">{{ sp.gia_tham_khao|default:0|floatformat:0|intcomma }} <small class="text-muted fs-6">VNĐ</small></h3>
+                        <hr class="opacity-10 mb-3">
+                        <h6 class="fw-bold text-secondary mb-2">Mô tả đặc tính:</h6>
+                        <p class="text-muted" style="line-height: 1.6;">
+                            {{ sp.mo_ta|default:"Đang cập nhật nội dung chi tiết."|linebreaksbr }}
+                        </p>
+                        
+                        <div class="mt-4 d-flex gap-2">
+                            <a href="{% url 'lien_he' %}" class="btn btn-primary fw-bold px-4 rounded-pill shadow-sm"><i class="fas fa-phone-alt me-2"></i> LIÊN HỆ NGAY</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const itemsPerPage = 8; // Số sản phẩm hiển thị trên 1 trang
+    let currentPage = 1;
+    let activeFilter = 'all'; // Lưu danh mục đang chọn
+    
+    const items = Array.from(document.querySelectorAll('.product-item'));
+    const searchInput = document.getElementById('searchCatalog');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const paginationUl = document.getElementById('paginationControls');
+    const noResultMsg = document.getElementById('noResultState');
+    
+    // Hàm chính: Lọc + Tìm kiếm + Phân trang
+    function renderGrid() {
+        const query = searchInput.value.toLowerCase().trim();
+        
+        // 1. Lọc ra danh sách các thẻ thỏa mãn (Danh mục & Tên)
+        let filteredItems = items.filter(item => {
+            const name = item.querySelector('.product-name').textContent.toLowerCase();
+            const desc = item.querySelector('.product-desc').textContent.toLowerCase();
+            const matchFilter = (activeFilter === 'all') || item.classList.contains(activeFilter);
+            const matchSearch = name.includes(query) || desc.includes(query);
+            return matchFilter && matchSearch;
+        });
+
+        // 2. Ẩn tất cả đi
+        items.forEach(item => item.style.display = 'none');
+
+        // 3. Hiện thông báo nếu không có cái nào
+        if(filteredItems.length === 0 && items.length > 0) {
+            noResultMsg.classList.remove('d-none');
+            paginationUl.innerHTML = '';
+            return;
+        } else {
+            noResultMsg.classList.add('d-none');
+        }
+
+        // 4. Tính toán phân trang
+        const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+        if (currentPage > totalPages) currentPage = 1; // Reset nếu lỡ trang hiện tại > tổng trang
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+
+        // 5. Hiển thị các thẻ thuộc trang hiện tại
+        filteredItems.slice(startIndex, endIndex).forEach(item => {
+            item.style.display = 'block';
+        });
+
+        // 6. Vẽ thanh phân trang
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+        paginationUl.innerHTML = '';
+        if(totalPages <= 1) return; // Nếu có 1 trang thì khỏi hiện số
+
+        // Nút Trước
+        let prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<span class="page-link">&laquo;</span>`;
+        prevLi.onclick = () => { if(currentPage > 1) { currentPage--; renderGrid(); } };
+        paginationUl.appendChild(prevLi);
+
+        // Các nút số
+        for(let i = 1; i <= totalPages; i++) {
+            let li = document.createElement('li');
+            li.className = `page-item ${currentPage === i ? 'active' : ''}`;
+            li.innerHTML = `<span class="page-link">${i}</span>`;
+            li.onclick = () => { currentPage = i; renderGrid(); };
+            paginationUl.appendChild(li);
+        }
+
+        // Nút Sau
+        let nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<span class="page-link">&raquo;</span>`;
+        nextLi.onclick = () => { if(currentPage < totalPages) { currentPage++; renderGrid(); } };
+        paginationUl.appendChild(nextLi);
+    }
+
+    // Gắn sự kiện khi gõ tìm kiếm
+    if(searchInput) {
+        searchInput.addEventListener('input', function() {
+            currentPage = 1; // Gõ tìm thì tự nhảy về trang 1
+            renderGrid();
+        });
+    }
+
+    // Gắn sự kiện khi bấm nút danh mục
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Đổi màu nút
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Lấy ID danh mục
+            activeFilter = this.getAttribute('data-filter');
+            currentPage = 1; // Bấm danh mục thì nhảy về trang 1
+            renderGrid();
+        });
+    });
+
+    // Chạy lần đầu tiên khi load web
+    renderGrid();
+});
+</script>
 {% endblock %}
